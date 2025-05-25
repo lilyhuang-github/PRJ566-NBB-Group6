@@ -23,3 +23,17 @@ export default function Protected({ children }) {
 
   return token ? children : null;
 }
+
+export function ManagerOnly({ children }) {
+  const user = useAtomValue(userAtom);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role !== 'manager') {
+      router.replace('/unauthorized'); // Redirect to unauthorized page if the user is not a manager
+    }
+  }, [user]);
+
+  return user?.role === 'manager' ? children : null; // Render children only if user is a manager
+}
+

@@ -45,7 +45,7 @@ export default function Footer() {
             <p className={styles.developers}>Mostafa Hasanalipourshahrabadi</p>
             <p className={styles.developers}>Saad Ghori</p>
             <p className={styles.developers}>Lily Huang</p>
-            <p className={styles.developers}>Furkan Bass</p>
+            <p className={styles.developers}>Furkan Bas</p>
           </Col>
         </Row>
 
