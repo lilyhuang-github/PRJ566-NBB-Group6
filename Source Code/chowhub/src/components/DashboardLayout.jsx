@@ -2,18 +2,22 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { tokenAtom, userAtom } from '@/store/atoms';
 import { useRouter } from 'next/router';
 import {
-  Tabs,
-  Tab,
+  Drawer,
   Box,
-  Button,
   Typography,
-  AppBar,
-  Toolbar,
-  Container,
-  Badge,
+  Button,
   IconButton,
+  Toolbar,
+  AppBar,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Badge,
   Menu,
   MenuItem,
+  InputBase,
+  Paper,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -26,9 +30,9 @@ import {
   Notifications as NotificationsIcon,
   AccessAlarm as AttendanceIcon,
 } from '@mui/icons-material';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import logo from '/public/images/logo.png';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function DashboardLayout({ children }) {
   const user = useAtomValue(userAtom);
@@ -36,34 +40,33 @@ export default function DashboardLayout({ children }) {
   const setUser = useSetAtom(userAtom);
   const setToken = useSetAtom(tokenAtom);
   const router = useRouter();
-  const [tabIndex, setTabIndex] = useState(0);
+  const pathname = router.pathname;
+  const username = router.query.restaurantUsername;
 
   const isManager = user?.role === 'manager';
 
-  // Notification dropdown state (dynamic data to be integrated)
   const [anchorEl, setAnchorEl] = useState(null);
   const handleOpenNotifications = (event) => setAnchorEl(event.currentTarget);
   const handleCloseNotifications = () => setAnchorEl(null);
 
   const managerTabs = [
-    { label: 'Overview', icon: <DashboardIcon /> },
-    { label: 'Staff', icon: <PeopleIcon /> },
-    { label: 'Menu', icon: <MenuIcon /> },
-    { label: 'Ingredient', icon: <InventoryIcon /> },
-    { label: 'Sales', icon: <SalesIcon /> },
-    { label: 'Shifts', icon: <ShiftsIcon /> },
-    { label: 'Settings', icon: <SettingsIcon /> },
+    { label: 'Overview', icon: <DashboardIcon />, path: '' },
+    { label: 'Staff', icon: <PeopleIcon />, path: 'staff' },
+    { label: 'Menu', icon: <MenuIcon />, path: 'menu' },
+    { label: 'Ingredient', icon: <InventoryIcon />, path: 'ingredient' },
+    { label: 'Sales', icon: <SalesIcon />, path: 'sales' },
+    { label: 'Shifts', icon: <ShiftsIcon />, path: 'shifts' },
+    { label: 'Settings', icon: <SettingsIcon />, path: 'settings' },
   ];
 
   const staffTabs = [
-    { label: 'Overview', icon: <DashboardIcon /> },
-    { label: 'Menu', icon: <MenuIcon /> },
-    { label: 'Attendance', icon: <AttendanceIcon /> },
+    { label: 'Overview', icon: <DashboardIcon />, path: '' },
+    { label: 'Menu', icon: <MenuIcon />, path: 'menu' },
+    { label: 'Attendance', icon: <AttendanceIcon />, path: 'attendance' },
   ];
 
-  const visibleTabs = isManager ? managerTabs : staffTabs;
-
-  const handleTabChange = (e, newValue) => setTabIndex(newValue);
+  const visibleTabs = useMemo(() => (isManager ? managerTabs : staffTabs), [isManager]);
+  const currentPath = router.asPath.split('/').pop();
 
   const handleLogout = () => {
     setUser(null);
@@ -71,105 +74,93 @@ export default function DashboardLayout({ children }) {
     router.push('/login');
   };
 
+  const handleTabClick = (tabPath) => {
+    router.push(`/${username}/dashboard${tabPath ? '/' + tabPath : ''}`);
+  };
+
   useEffect(() => {
     if (!token || !user) router.push('/login');
   }, [token, user]);
 
   return (
-    <>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar className="container d-flex justify-content-between">
-          <Box className="d-flex align-items-center gap-4">
-            <Image src={logo} alt="ChowHub" width={100} height={100} />
-            <Tabs
-              value={tabIndex}
-              onChange={handleTabChange}
-              textColor="primary"
-              indicatorColor="primary"
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              {visibleTabs.map((tab, index) => (
-                <Tab
-                  key={index}
-                  icon={tab.icon}
-                  iconPosition="start"
-                  label={tab.label}
-                  sx={{ fontWeight: 600 }}
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      <Drawer variant="permanent" anchor="left" sx={{ width: 240 }}>
+        <Box sx={{ width: 240 }}>
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+            <Image src={logo} alt="ChowHub" width={120} height={100} />
+          </Box>
+          <List>
+            {visibleTabs.map((tab) => (
+              <ListItem
+                button
+                key={tab.label}
+                selected={currentPath === tab.path}
+                onClick={() => handleTabClick(tab.path)}
+              >
+                <ListItemIcon>{tab.icon}</ListItemIcon>
+                <ListItemText primary={tab.label} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+
+      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+        <AppBar position="static" color="default" elevation={1}>
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                {user?.restaurantName || user?.restaurantUsername}
+              </Typography>
+              <Paper
+                component="form"
+                sx={{
+                  p: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: 280,
+                  borderRadius: '12px',
+                  backgroundColor: '#f5f5f5',
+                }}
+              >
+                <InputBase
+                  sx={{ ml: 1, flex: 1 }}
+                  placeholder="Search..."
+                  inputProps={{ 'aria-label': 'search dashboard' }}
                 />
-              ))}
-            </Tabs>
-          </Box>
+              </Paper>
+            </Box>
 
-          <Box className="d-flex align-items-center gap-3">
-            {isManager && (
-              <>
-                <IconButton onClick={handleOpenNotifications}>
-                  <Badge color="error" variant="dot">
-                    <NotificationsIcon color="action" />
-                  </Badge>
-                </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {isManager && (
+                <>
+                  <IconButton onClick={handleOpenNotifications}>
+                    <Badge color="error" variant="dot">
+                      <NotificationsIcon color="action" />
+                    </Badge>
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleCloseNotifications}
+                  >
+                    <MenuItem disabled>🔔 No new notifications</MenuItem>
+                  </Menu>
+                </>
+              )}
 
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleCloseNotifications}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                  <MenuItem disabled>
-                    Notifications will appear here (e.g., low inventory alerts)
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
+              <Typography variant="body1" color="textSecondary">
+                👤 {user?.username}
+              </Typography>
+              <Button variant="outlined" size="small" color="error" onClick={handleLogout}>
+                Logout
+              </Button>
+            </Box>
+          </Toolbar>
+        </AppBar>
 
-
-            <Typography variant="body1" color="textSecondary">
-              👤 {user?.username}
-            </Typography>
-            <Button variant="outlined" size="small" color="error" onClick={handleLogout}>
-              Logout
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      {/* Welcome banner */}
-      <Box
-        sx={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/create-res-header.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          height: '30vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Typography
-          variant="h4"
-          className="text-center text-white"
-          sx={{ fontWeight: 'bold', textShadow: '1px 1px 4px #000' }}
-        >
-          Welcome to {user?.restaurantName}
-        </Typography>
+        <Box sx={{ p: 3 }}>{children}</Box>
       </Box>
-
-      <Container className="mt-4">
-        {tabIndex === 0 && children}
-
-        {tabIndex > 0 && (
-          <Box>
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              {visibleTabs[tabIndex]?.label}
-            </Typography>
-            <Typography color="text.secondary">
-              This section will be implemented in a separate task.
-            </Typography>
-          </Box>
-        )}
-      </Container>
-    </>
+    </Box>
   );
 }
