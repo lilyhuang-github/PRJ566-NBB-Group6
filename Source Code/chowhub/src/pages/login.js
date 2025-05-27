@@ -12,12 +12,30 @@ import { useEffect } from 'react';
 
 export default function LoginPage() {
   const setToken = useSetAtom(tokenAtom);
-  const setUser  = useSetAtom(userAtom);
-  const token    = useAtomValue(tokenAtom);
-  const user     = useAtomValue(userAtom);
-  const router   = useRouter();
+  const setUser = useSetAtom(userAtom);
+  const token = useAtomValue(tokenAtom);
+  const user = useAtomValue(userAtom);
+  const router = useRouter();
 
-  /* ★ Redirect to dashboard if already logged in */
+  // Load authentication state from localStorage on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        setToken(null);
+        setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [setToken, setUser]);
+
+  // Redirect to dashboard if already logged in
   useEffect(() => {
     if (token && user?.restaurantUsername) {
       router.replace(`/${user.restaurantUsername}/dashboard`);
@@ -34,8 +52,12 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      setToken(res.token);
+      const tokenToStore = res.token;
+      setToken(tokenToStore);
       setUser(res.user);
+      // Save to localStorage manually
+      localStorage.setItem('token', tokenToStore);
+      localStorage.setItem('user', JSON.stringify(res.user));
       toast.success('Logged in!');
       router.push(`/${res.user.restaurantUsername}/dashboard`);
     } catch (err) {
@@ -56,7 +78,7 @@ export default function LoginPage() {
             <Form.Label>Username</Form.Label>
             <Form.Control name="username" required className={styles.inputLarge} />
           </Form.Group>
-          <Form.Group className="mb-4"> {/* Kept mb-4 for spacing before the action row */}
+          <Form.Group className="mb-4">
             <Form.Label>Password</Form.Label>
             <Form.Control
               name="password"

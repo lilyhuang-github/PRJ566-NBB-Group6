@@ -1,39 +1,86 @@
-import { useAtomValue } from 'jotai';
-import { tokenAtom, userAtom } from '@/store/atoms';   
+import { useEffect, useState } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { tokenAtom, userAtom } from '@/store/atoms';
 
+/**
+ * Wrap any dashboard page in <Protected>…</Protected>
+ * - Loads token and user from localStorage on mount
+ * - If no token or no user after initialization → clears auth & redirects to /login
+ * - If on a mismatched restaurantUsername URL → sends to correct dashboard
+ */
 export default function Protected({ children }) {
-  const token = useAtomValue(tokenAtom);
-  const user  = useAtomValue(userAtom);              
   const router = useRouter();
-  const { restaurantUsername } = router.query;       
+  const { restaurantUsername } = router.query;
+  const setToken = useSetAtom(tokenAtom);
+  const setUser = useSetAtom(userAtom);
+  const token = useAtomValue(tokenAtom);
+  const user = useAtomValue(userAtom);
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Load authentication data from localStorage on mount
   useEffect(() => {
-    if (!token) {
-      router.replace('/login');                       
-    } else if (
-      restaurantUsername &&                           
-      user?.restaurantUsername &&                    
-      restaurantUsername !== user.restaurantUsername  
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        setToken(null);
+        setUser(null);
+      }
+    }
+    setIsInitialized(true);
+  }, [setToken, setUser]);
+
+  // Handle redirects after initialization
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // 1) Not logged in or user info not set → clear & send to login
+    if (!token || !user) {
+      setToken(null);
+      setUser(null);
+      router.replace('/login');
+      return;
+    }
+
+    // 2) Wrong restaurantUsername in URL → redirect to their own dashboard
+    if (
+      restaurantUsername &&
+      user.restaurantUsername &&
+      restaurantUsername !== user.restaurantUsername
     ) {
       router.replace(`/${user.restaurantUsername}/dashboard`);
     }
-  }, [token, restaurantUsername]);
+  }, [isInitialized, token, user, restaurantUsername, router, setToken, setUser]);
 
-  return token ? children : null;
+  // Render logic
+  if (!isInitialized) {
+    return <div>Loading...</div>; // Display loading state during initialization
+  }
+
+  if (!token || !user) {
+    return null; // Redirect is handled in useEffect
+  }
+
+  return children; // Render protected content
 }
 
+/**
+ * Wrap pages that only managers may see.
+ */
 export function ManagerOnly({ children }) {
   const user = useAtomValue(userAtom);
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.role !== 'manager') {
-      router.replace('/unauthorized'); // Redirect to unauthorized page if the user is not a manager
+    if (user && user.role !== 'manager') {
+      router.replace('/unauthorized');
     }
-  }, [user]);
+  }, [user, router]);
 
-  return user?.role === 'manager' ? children : null; // Render children only if user is a manager
+  return user?.role === 'manager' ? children : null;
 }
-

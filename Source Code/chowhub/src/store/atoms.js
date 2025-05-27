@@ -1,6 +1,5 @@
 // src/store/atoms.js
-import { atomWithStorage } from 'jotai/utils';
+import { atom } from 'jotai';
 
-export const tokenAtom = atomWithStorage('token', null);
-export const userAtom  = atomWithStorage('user',  null);
-
+export const tokenAtom = atom(null);
+export const userAtom = atom(null);
