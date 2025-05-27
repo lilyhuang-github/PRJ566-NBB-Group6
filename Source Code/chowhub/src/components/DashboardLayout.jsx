@@ -17,7 +17,7 @@ import {
   Menu,
   MenuItem,
   InputBase,
-  Paper,
+  Paper
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -28,7 +28,7 @@ import {
   AccessTime as ShiftsIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
-  AccessAlarm as AttendanceIcon,
+  AccessAlarm as AttendanceIcon
 } from '@mui/icons-material';
 import Image from 'next/image';
 import logo from '/public/images/logo.png';
@@ -40,7 +40,6 @@ export default function DashboardLayout({ children }) {
   const setUser = useSetAtom(userAtom);
   const setToken = useSetAtom(tokenAtom);
   const router = useRouter();
-  const pathname = router.pathname;
   const username = router.query.restaurantUsername;
 
   const isManager = user?.role === 'manager';
@@ -56,13 +55,13 @@ export default function DashboardLayout({ children }) {
     { label: 'Ingredient', icon: <InventoryIcon />, path: 'ingredient' },
     { label: 'Sales', icon: <SalesIcon />, path: 'sales' },
     { label: 'Shifts', icon: <ShiftsIcon />, path: 'shifts' },
-    { label: 'Settings', icon: <SettingsIcon />, path: 'settings' },
+    { label: 'Settings', icon: <SettingsIcon />, path: 'settings' }
   ];
 
   const staffTabs = [
     { label: 'Overview', icon: <DashboardIcon />, path: '' },
     { label: 'Menu', icon: <MenuIcon />, path: 'menu' },
-    { label: 'Attendance', icon: <AttendanceIcon />, path: 'attendance' },
+    { label: 'Attendance', icon: <AttendanceIcon />, path: 'attendance' }
   ];
 
   const visibleTabs = useMemo(() => (isManager ? managerTabs : staffTabs), [isManager]);
@@ -79,11 +78,14 @@ export default function DashboardLayout({ children }) {
   };
 
   useEffect(() => {
-    if (!token || !user) router.push('/login');
+    if (!token || !user) {
+      router.push('/login');
+    }
   }, [token, user]);
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Sidebar */}
       <Drawer variant="permanent" anchor="left" sx={{ width: 240 }}>
         <Box sx={{ width: 240 }}>
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
@@ -92,10 +94,10 @@ export default function DashboardLayout({ children }) {
           <List>
             {visibleTabs.map((tab) => (
               <ListItem
-                button
                 key={tab.label}
-                selected={currentPath === tab.path}
                 onClick={() => handleTabClick(tab.path)}
+                selected={currentPath === tab.path}
+                sx={{ cursor: 'pointer' }}
               >
                 <ListItemIcon>{tab.icon}</ListItemIcon>
                 <ListItemText primary={tab.label} />
@@ -105,12 +107,14 @@ export default function DashboardLayout({ children }) {
         </Box>
       </Drawer>
 
+      {/* Main Content */}
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <AppBar position="static" color="default" elevation={1}>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            {/* Restaurant name + search */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                {user?.restaurantName || user?.restaurantUsername}
+                {user?.restaurantUsername || 'My Restaurant'}
               </Typography>
               <Paper
                 component="form"
@@ -120,7 +124,7 @@ export default function DashboardLayout({ children }) {
                   alignItems: 'center',
                   width: 280,
                   borderRadius: '12px',
-                  backgroundColor: '#f5f5f5',
+                  backgroundColor: '#f5f5f5'
                 }}
               >
                 <InputBase
@@ -131,6 +135,7 @@ export default function DashboardLayout({ children }) {
               </Paper>
             </Box>
 
+            {/* User / notifications / logout */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {isManager && (
                 <>
@@ -150,7 +155,7 @@ export default function DashboardLayout({ children }) {
               )}
 
               <Typography variant="body1" color="textSecondary">
-                👤 {user?.username}
+                👤 {user?.firstName|| user?.username ||  user?.email}
               </Typography>
               <Button variant="outlined" size="small" color="error" onClick={handleLogout}>
                 Logout
