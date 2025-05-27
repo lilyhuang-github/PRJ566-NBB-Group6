@@ -1,5 +1,3 @@
-// pages/reset-password/index.js
-
 import { useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Header } from '@/components/Header';
@@ -7,18 +5,17 @@ import Top from '@/components/Top';
 import styles from '../create-restaurant/createRes.module.css';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 
-export default function ResetPasswordPage() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); 
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('idle');
     setError('');
 
     try {
-       // API call to request password reset
       await apiFetch('/auth/request-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,12 +26,12 @@ export default function ResetPasswordPage() {
       setStatus('error');
       setError(err.message || 'Something went wrong.');
     }
-  }
+  };
 
   return (
     <>
       <Top />
-      <Header title="🔐 Reset Your Password" image="/images/create-res-header.jpg" />
+      <Header title="🔐 Forgot Password" image="/images/create-res-header.jpg" />
       <Container className="mt-5">
         <Form
           onSubmit={handleSubmit}
@@ -52,10 +49,9 @@ export default function ResetPasswordPage() {
             />
           </Form.Group>
 
-          {/* Display success/error messages based on status */}
           {status === 'success' && (
             <Alert variant="success" className="mt-3">
-              ✅ If this email exists, a reset link has been sent.
+              ✅ If this email is registered, a reset link has been sent.
             </Alert>
           )}
 
@@ -65,7 +61,11 @@ export default function ResetPasswordPage() {
             </Alert>
           )}
 
-          <Button type="submit" variant="success" className={`mt-2 ${styles.registerBtn}`}>
+          <Button
+            type="submit"
+            variant="success"
+            className={`mt-2 ${styles.registerBtn}`}
+          >
             Send Reset Link
           </Button>
         </Form>
