@@ -75,20 +75,27 @@ export default function UserManagementPage() {
             </div>
 
             {/* Create User button aligned right */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', paddingRight: '1rem' }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: "1rem",
+                paddingRight: "1rem",
+              }}
+            >
               <button
                 onClick={() =>
                   router.push(`/${restaurantUsername}/dashboard/user-management/create`)
                 }
                 style={{
-                  backgroundColor: '#388E3C', // darker green
-                  color: '#FFF',
-                  border: 'none',
-                  padding: '0.5rem 1.25rem',
+                  backgroundColor: "#388E3C", // darker green
+                  color: "#FFF",
+                  border: "none",
+                  padding: "0.5rem 1.25rem",
                   borderRadius: 4,
-                  fontSize: '1rem',
+                  fontSize: "1rem",
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: "pointer",
                 }}
               >
                 Create User +
@@ -103,10 +110,10 @@ export default function UserManagementPage() {
                 <button
                   onClick={() =>
                     router.push(
-                      `/${restaurantUsername}/dashboard/user-management/edit/${row.username}`
+                      `/${restaurantUsername}/dashboard/user-management/edit/${row.username}`,
                     )
                   }
-                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   ✏️
                 </button>
