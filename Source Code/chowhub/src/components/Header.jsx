@@ -8,7 +8,8 @@ export function Header({ title, image }) {
     <div
       style={{
         height: "50vh",
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url(${image})`,
+        marginTop: "80px",
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url(${image})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

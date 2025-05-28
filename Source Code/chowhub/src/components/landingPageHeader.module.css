@@ -7,17 +7,17 @@
 
 .carouselItem1 {
   background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(/images/1.jpg);
+    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url(/images/pizza.jpg);
 }
 
 .carouselItem2 {
   background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7)), url(/images/2.jpg);
+    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url(/images/2.jpg);
 }
 
 .carouselItem3 {
   background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7)), url(/images/3.jpg);
+    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.1)), url(/images/spaghetti.jpg);
 }
 
 .carousel .carousel-control-prev-icon,

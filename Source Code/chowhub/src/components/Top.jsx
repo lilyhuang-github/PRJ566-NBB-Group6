@@ -5,11 +5,11 @@ import Link from "next/link";
 
 export default function Header() {
   return (
-    <header className={`fixed-top shadow p-3 bg-white ${styles.header}`}>
+    <header className={`fixed-top shadow bg-white ${styles.header}`}>
       <Container className="d-flex justify-content-between align-items-center">
         {/* Left: Logo */}
         <div>
-          <Image src="/images/logo.png" width={140} height={140} alt="ChowHub Logo" />
+          <Image src="/images/logo1.png" width={100} height={80} alt="ChowHub Logo" />
         </div>
 
         {/* Center: Navigation */}

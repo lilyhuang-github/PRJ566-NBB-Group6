@@ -69,7 +69,7 @@ export default function CreateRestaurant() {
     <div>
       <Top />
 
-      <Header title="Create Your Restaurant 🍕" image="/images/create-res-header.jpg" />
+      <Header title="Create Your Restaurant 🍕" image="/images/table.jpg" />
 
       <motion.div
         initial={{ opacity: 0, x: 300 }}
