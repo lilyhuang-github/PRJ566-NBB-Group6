@@ -46,11 +46,11 @@ export default function UserManagementPage() {
     status: u.isActive ? "Active" : "Inactive",
     phone: u.phone,
     emergencyContact: u.emergencyContact,
+    _id: u._id,
   }));
 
   const columns = [
     { header: "Name", accessor: "fullName" },
-    { header: "Username", accessor: "username" },
     { header: "Email", accessor: "email" },
     { header: "Role", accessor: "role" },
     { header: "Status", accessor: "status" },
@@ -75,20 +75,27 @@ export default function UserManagementPage() {
             </div>
 
             {/* Create User button aligned right */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', paddingRight: '1rem' }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: "1rem",
+                paddingRight: "1rem",
+              }}
+            >
               <button
                 onClick={() =>
                   router.push(`/${restaurantUsername}/dashboard/user-management/create`)
                 }
                 style={{
-                  backgroundColor: '#388E3C', // darker green
-                  color: '#FFF',
-                  border: 'none',
-                  padding: '0.5rem 1.25rem',
+                  backgroundColor: "#388E3C", // darker green
+                  color: "#FFF",
+                  border: "none",
+                  padding: "0.5rem 1.25rem",
                   borderRadius: 4,
-                  fontSize: '1rem',
+                  fontSize: "1rem",
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: "pointer",
                 }}
               >
                 Create User +
@@ -102,11 +109,21 @@ export default function UserManagementPage() {
               renderActions={(row) => (
                 <button
                   onClick={() =>
-                    router.push(
-                      `/${restaurantUsername}/dashboard/user-management/edit/${row.username}`
-                    )
+                    router.push({
+                      pathname: `/${restaurantUsername}/dashboard/user-management/edit/${row.username}`,
+                      query: {
+                        fullName: `${row.fullName}`,
+                        username: `${row.username.value}`,
+                        email: `${row.email}`,
+                        role: `${row.role}`,
+                        userStatus: `${row.status}`,
+                        phone: `${row.status}`,
+                        emergencyContact: `${row.emergencyContact}`,
+                        _id: `${row._id}`,
+                      },
+                    })
                   }
-                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   ✏️
                 </button>
