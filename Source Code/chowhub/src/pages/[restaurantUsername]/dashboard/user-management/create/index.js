@@ -6,6 +6,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import { toast } from "react-toastify";
 // import { useAtom } from "jotai";
+
+//to do: refactor code to make forum a component
 export default function CreateEmployeeForm() {
   const [form, setForm] = useState({
     firstName: "",
