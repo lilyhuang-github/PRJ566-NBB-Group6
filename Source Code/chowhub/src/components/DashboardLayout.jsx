@@ -174,8 +174,8 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { useAtomValue } from "jotai";
-import { userAtom } from "@/store/atoms";
+import { useAtomValue, useSetAtom } from "jotai";
+import { tokenAtom, userAtom } from "@/store/atoms";
 import Protected from "./Protected";
 
 import {
@@ -188,6 +188,7 @@ import {
   FiUserCheck,
   FiMenu,
   FiX,
+  FiLogOut,
 } from "react-icons/fi";
 
 const NAV_ITEMS = [
@@ -218,6 +219,17 @@ export default function DashboardLayout({ children }) {
   const user = useAtomValue(userAtom);
   const isManager = user?.role === "manager";
   const tabs = NAV_ITEMS.filter((tab) => !tab.managerOnly || isManager);
+
+  const setToken = useSetAtom(tokenAtom);
+  const setUser = useSetAtom(userAtom);
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    router.replace("/login");
+  }
 
   return (
     <Protected>
@@ -272,6 +284,28 @@ export default function DashboardLayout({ children }) {
                 </li>
               );
             })}
+            <li style={{ margin: "0.5rem 0" }}>
+              <button
+                onClick={handleLogout}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.6)",
+                  padding: "0.75rem 1rem",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                }}
+              >
+                <span style={{ marginRight: collapsed ? 0 : 12, fontSize: "1.2rem" }}>
+                  <FiLogOut />
+                </span>
+                {!collapsed && <span>Logout</span>}
+              </button>
+            </li>
           </ul>
         </div>
 
