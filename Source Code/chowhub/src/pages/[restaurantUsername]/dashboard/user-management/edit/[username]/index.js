@@ -6,11 +6,18 @@ import { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { apiFetch } from "@/lib/api";
 import { toast } from "react-toastify";
+import { userAtom } from "@/store/atoms";
+import { useAtomValue } from "jotai";
+
 //future to do: update it to use context rather than router query
 //refactor code to make forum a component
 export default function EditEmployee() {
   const router = useRouter();
   const [userId, setUserId] = useState();
+  // Holds warning messages to display if something goes wrong (e.g., duplicate email)
+  const [warning, setWarning] = useState("");
+  const user = useAtomValue(userAtom);
+
   const [formData, setFormData] = useState({
     username: "",
     firstName: "",
@@ -74,8 +81,11 @@ export default function EditEmployee() {
         autoClose: 5000,
       });
       console.log(res.message); // Log success message
+      router.push(`/${user.restaurantUsername}/dashboard/user-management`);
     } catch (err) {
       console.log(err, "error occured while updating employee");
+      // If the API call fails, show the error message
+      setWarning(err.message);
     }
   };
   if (!formData)
@@ -180,6 +190,7 @@ export default function EditEmployee() {
               name="status"
             />{" "}
             <br />
+            {warning && <p className="text-danger">{warning}</p>}
             <Button variant="primary" type="submit">
               Update
             </Button>

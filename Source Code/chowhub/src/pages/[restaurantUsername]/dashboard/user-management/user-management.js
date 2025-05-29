@@ -71,7 +71,7 @@ export default function UserManagementPage() {
             <div style={{ display: "flex", gap: "1rem", margin: "1.5rem 0" }}>
               <SummaryCard label="Total Users" value={totals.total} color="#FF8C00" />
               <SummaryCard label="Active Users" value={totals.active} color="#4CAF50" />
-              <SummaryCard label="Deactivated Users" value={totals.deactivated} color="#E53935" />
+              <SummaryCard label="Inactive Users" value={totals.deactivated} color="#E53935" />
             </div>
 
             {/* Create User button aligned right */}

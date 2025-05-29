@@ -1,14 +1,20 @@
 import { apiFetch } from "@/lib/api";
-import { useAtomValue, useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { Form, Button } from "react-bootstrap";
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import { toast } from "react-toastify";
-// import { useAtom } from "jotai";
+import { useRouter } from "next/router";
+import { userAtom } from "@/store/atoms";
 
 //to do: refactor code to make forum a component
 export default function CreateEmployeeForm() {
+  const router = useRouter();
+
+  // Holds warning messages to display if something goes wrong (e.g., duplicate email)
+  const [warning, setWarning] = useState("");
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -17,7 +23,8 @@ export default function CreateEmployeeForm() {
     username: "",
     role: "",
   });
-  // const user = useAtomValue(userAtom);
+
+  const user = useAtomValue(userAtom);
   // const token = useAtomValue(tokenAtom);
 
   const handleChange = (e) => {
@@ -43,8 +50,11 @@ export default function CreateEmployeeForm() {
         autoClose: 5000,
       });
       console.log(res.message); // Log success message
+      router.push(`/${user.restaurantUsername}/dashboard/user-management`);
     } catch (err) {
       console.log(err, "error occured while creating new employee");
+      // If the API call fails, show the error message
+      setWarning(err.message);
     }
   };
   return (
@@ -131,6 +141,9 @@ export default function CreateEmployeeForm() {
                 onChange={handleChange}
               />
             </div>
+
+            {warning && <p className="text-danger">{warning}</p>}
+
             <Button variant="primary" type="submit">
               Submit
             </Button>

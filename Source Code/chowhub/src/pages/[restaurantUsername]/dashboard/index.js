@@ -189,7 +189,7 @@ export default function OverviewPage() {
     <Protected>
       <DashboardLayout>
         {/* Placeholder for Overview content */}
-        <h1>Overview of Restaurant {user.restaurantName}</h1>
+        <h1>Overview - {user.restaurantName}</h1>
         <p>Welcome {user.firstName} to your dashboard. More features coming soon.</p>
       </DashboardLayout>
     </Protected>
