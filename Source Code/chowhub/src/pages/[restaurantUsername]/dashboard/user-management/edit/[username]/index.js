@@ -178,7 +178,7 @@ export default function EditEmployee() {
               id="custom-switch"
               label="Active Status"
               checked={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.status })}
+              onChange={(e) => setFormData({ ...formData, status: e.target.checked.valueOf() })}
               name="status"
             />{" "}
             <br />
