@@ -90,9 +90,7 @@ export default function EditEmployee() {
     <DashboardLayout>
       <ManagerOnly>
         <>
-          <h1>
-            Editing Data For: {formData.username} {JSON.stringify(formData)}
-          </h1>
+          <h1>Editing Data For: {formData.username}</h1>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="formFirstName">
               <Form.Label>First Name</Form.Label>
