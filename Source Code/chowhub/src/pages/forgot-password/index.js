@@ -1,30 +1,32 @@
-import { useState } from 'react';
-import { apiFetch } from '@/lib/api';
-import { Header } from '@/components/Header';
-import Top from '@/components/Top';
-import styles from '../create-restaurant/createRes.module.css';
-import { Form, Button, Container, Alert } from 'react-bootstrap';
+import { useState } from "react";
+import { apiFetch } from "@/lib/api";
+import { Header } from "@/components/Header";
+import Top from "@/components/Top";
+import styles from "../create-restaurant/createRes.module.css";
+import { Form, Button, Container, Alert } from "react-bootstrap";
+import { useRouter } from "next/router";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('idle');
-    setError('');
+    setStatus("idle");
+    setError("");
 
     try {
-      await apiFetch('/auth/request-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await apiFetch("/auth/request-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      setStatus('success');
+      setStatus("success");
     } catch (err) {
-      setStatus('error');
-      setError(err.message || 'Something went wrong.');
+      setStatus("error");
+      setError(err.message || "Something went wrong.");
     }
   };
 
@@ -49,25 +51,31 @@ export default function ForgotPasswordPage() {
             />
           </Form.Group>
 
-          {status === 'success' && (
+          {status === "success" && (
             <Alert variant="success" className="mt-3">
               ✅ If this email is registered, a reset link has been sent.
             </Alert>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <Alert variant="danger" className="mt-3">
               ❌ {error}
             </Alert>
           )}
 
-          <Button
-            type="submit"
-            variant="success"
-            className={`mt-2 ${styles.registerBtn}`}
-          >
-            Send Reset Link
-          </Button>
+          {status === "success" ? (
+            <Button
+              variant="primary"
+              className={`mt-2 ${styles.registerBtn}`}
+              onClick={() => router.push("/")}
+            >
+              Go back to Home
+            </Button>
+          ) : (
+            <Button type="submit" variant="success" className={`mt-2 ${styles.registerBtn}`}>
+              Send Reset Link
+            </Button>
+          )}
         </Form>
       </Container>
     </>

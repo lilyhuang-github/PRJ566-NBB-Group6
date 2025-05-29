@@ -58,7 +58,7 @@ export default function CreateRestaurant() {
         autoClose: 5000,
       });
       console.log(response.message); // Log success message
-      router.push("/"); // Redirect to homepage or login after success
+      router.push("/"); // Redirect to homepage after success
     } catch (err) {
       // If the API call fails, show the error message
       setWarning(err.message);

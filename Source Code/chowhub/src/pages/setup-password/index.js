@@ -64,7 +64,7 @@ export default function SetupPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
-      toast.success("🎉 Your account has been activated!", {
+      toast.success("🎉 You are all set. Ready to Login!", {
         position: "top-center",
         autoClose: 5000,
       });
