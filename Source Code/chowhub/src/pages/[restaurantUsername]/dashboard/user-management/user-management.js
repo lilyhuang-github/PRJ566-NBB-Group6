@@ -6,7 +6,7 @@ import { ManagerOnly } from "@/components/Protected";
 import SummaryCard from "@/components/SummaryCard";
 import DataTable from "@/components/DataTable";
 import { apiFetch } from "@/lib/api";
-
+import NotificationBell from "@/components/NotificationBell";
 export default function UserManagementPage() {
   const router = useRouter();
   const { restaurantUsername } = router.query;
@@ -72,6 +72,7 @@ export default function UserManagementPage() {
               <SummaryCard label="Total Users" value={totals.total} color="#FF8C00" />
               <SummaryCard label="Active Users" value={totals.active} color="#4CAF50" />
               <SummaryCard label="Inactive Users" value={totals.deactivated} color="#E53935" />
+              <NotificationBell></NotificationBell>
             </div>
 
             {/* Create User button aligned right */}
