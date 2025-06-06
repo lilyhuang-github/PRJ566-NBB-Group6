@@ -59,6 +59,10 @@ export default function SetupPasswordPage() {
     }
 
     try {
+      const notification = await apiFetch("/notification/user-activation", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      });
       const result = await apiFetch("/auth/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
