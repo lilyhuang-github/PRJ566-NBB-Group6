@@ -1,5 +1,7 @@
 import Badge from 'react-bootstrap/Badge';
-export default function NotificationPopSmall({from, message, seen, timestamp, type}){
+import { apiFetch } from "@/lib/api";
+import { Button } from 'react-bootstrap';
+export default function NotificationPopSmall({from, message, seen, timestamp, type, notificationId}){
     const formatTime = new Date(timestamp).toLocaleDateString();
     let typeBadge; 
     if(type == 'user-activated'){
@@ -16,14 +18,22 @@ export default function NotificationPopSmall({from, message, seen, timestamp, ty
           </Badge>
         </div>;
     }
+    const notificationSeen = async(notificationId) =>{
+        try{
+            const res = await apiFetch(`/notification/${notificationId}`, {
+                method: "PUT"
+            });
+        }catch(err) {console.log(err)}
+    }
   return (
     <div
-      className={`d-flex flex-column p-2 border-bottom ${!seen ? "bg-light" : ""} text-dark`}
+      className={`d-flex flex-column p-2 border-bottom text-dark`}
       style={{ fontSize: "0.9rem" }}
     >
       <div className="d-flex justify-content-between align-items-center">
-        <strong>{from}</strong>
+        <strong>{from} {seen? "👁" : ""}</strong>
         <small className="text-muted">{formatTime}</small>
+        <Button onClick={() => notificationSeen(notificationId)}>Seen </Button>
       </div>
       <div className="text">{message}</div>
       {type && (

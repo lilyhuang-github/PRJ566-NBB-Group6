@@ -1,7 +1,7 @@
 
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import { apiFetch } from '@/lib/api';
 import NotificationPopSmall from './NotificationPopSmall';
 
@@ -10,6 +10,9 @@ export default function NotificationBell(){
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
     
+    useEffect(() =>{
+        getNotifications();
+    }, []);
     const getNotifications = async()=>{
       try{
          setLoading(true);
@@ -62,6 +65,7 @@ export default function NotificationBell(){
                 timestamp={n.timestamp}
                 seen={n.seen}
                 type={n.type}
+                notificationId={n._id}
               />
             ))
           )}
