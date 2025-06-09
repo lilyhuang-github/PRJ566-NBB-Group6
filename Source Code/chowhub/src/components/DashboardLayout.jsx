@@ -194,11 +194,11 @@ import {
 const NAV_ITEMS = [
   { label: "Overview", icon: <FiHome />, path: "" },
   { label: "Ordering", icon: <FiShoppingCart />, path: "ordering" },
-  { label: "Menu Management", icon: <FiBook />, path: "menu-management", managerOnly: true },
-  { label: "Inventory", icon: <FiBox />, path: "inventory-management", managerOnly: true },
+  { label: "Menu", icon: <FiBook />, path: "menu-management", managerOnly: true },
+  { label: "Ingredients", icon: <FiBox />, path: "ingredient-management", managerOnly: true },
   { label: "Suppliers", icon: <FiUsers />, path: "supplier-management", managerOnly: true },
   { label: "Sales & Analytics", icon: <FiBarChart2 />, path: "sales-analytics", managerOnly: true },
-  { label: "User Management", icon: <FiUserCheck />, path: "user-management", managerOnly: true },
+  { label: "Users", icon: <FiUserCheck />, path: "user-management", managerOnly: true },
 ];
 
 export default function DashboardLayout({ children }) {
