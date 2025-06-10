@@ -1,32 +1,35 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import SummaryCard from "@/components/SummaryCard";
 import DataTable from "@/components/DataTable";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+
 export default function UserManagementPage() {
   const router = useRouter();
   const { restaurantUsername } = router.query;
 
-  // State for users and totals
   const [users, setUsers] = useState([]);
   const [totals, setTotals] = useState({ total: 0, active: 0, deactivated: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     async function load() {
       try {
-        const { users: list, total } = await apiFetch("/users?page=1&limit=10");
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: itemsPerPage.toString(),
+        }).toString();
+        const { users: list, total, summary } = await apiFetch(`/users?${params}`);
         setUsers(list);
-
-        const activeCount = list.filter((u) => u.isActive).length;
         setTotals({
-          total,
-          active: activeCount,
-          deactivated: total - activeCount,
+          total: total,
+          active: summary.active,
+          deactivated: summary.deactivated,
         });
       } catch (err) {
         console.error("Failed to load users", err);
@@ -35,9 +38,10 @@ export default function UserManagementPage() {
       }
     }
     load();
-  }, []);
+  }, [currentPage]);
 
-  // Prepare rows for DataTable
+  const totalPages = Math.ceil(totals.total / itemsPerPage);
+
   const rows = users.map((u) => ({
     fullName: `${u.firstName} ${u.lastName}`,
     username: u.username,
@@ -72,7 +76,7 @@ export default function UserManagementPage() {
               <SummaryCard label="Total Users" value={totals.total} color="#FF8C00" />
               <SummaryCard label="Active Users" value={totals.active} color="#4CAF50" />
               <SummaryCard label="Inactive Users" value={totals.deactivated} color="#E53935" />
-              <NotificationBell></NotificationBell>
+              <NotificationBell />
             </div>
 
             {/* Create User button aligned right */}
@@ -89,7 +93,7 @@ export default function UserManagementPage() {
                   router.push(`/${restaurantUsername}/dashboard/user-management/create`)
                 }
                 style={{
-                  backgroundColor: "#388E3C", // darker green
+                  backgroundColor: "#388E3C",
                   color: "#FFF",
                   border: "none",
                   padding: "0.5rem 1.25rem",
@@ -113,14 +117,14 @@ export default function UserManagementPage() {
                     router.push({
                       pathname: `/${restaurantUsername}/dashboard/user-management/edit/${row.username}`,
                       query: {
-                        fullName: `${row.fullName}`,
-                        username: `${row.username.value}`,
-                        email: `${row.email}`,
-                        role: `${row.role}`,
-                        userStatus: `${row.status}`,
-                        phone: `${row.status}`,
-                        emergencyContact: `${row.emergencyContact}`,
-                        _id: `${row._id}`,
+                        fullName: row.fullName,
+                        username: row.username,
+                        email: row.email,
+                        role: row.role,
+                        userStatus: row.status,
+                        phone: row.phone,
+                        emergencyContact: row.emergencyContact,
+                        _id: row._id,
                       },
                     })
                   }
@@ -130,6 +134,27 @@ export default function UserManagementPage() {
                 </button>
               )}
             />
+
+            {/* Pagination */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setCurrentPage(i + 1)}
+                  style={{
+                    backgroundColor: currentPage === i + 1 ? "#388E3C" : "#2A2A3A",
+                    color: "#FFF",
+                    border: "none",
+                    padding: "0.5rem 1rem",
+                    margin: "0 0.25rem",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                  }}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </>
         )}
       </ManagerOnly>
