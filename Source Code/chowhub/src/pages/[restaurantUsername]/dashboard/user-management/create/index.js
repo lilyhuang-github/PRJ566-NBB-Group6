@@ -1,12 +1,13 @@
 import { apiFetch } from "@/lib/api";
 import { useAtomValue } from "jotai";
 import { Form, Button } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { userAtom } from "@/store/atoms";
+import { checkUniqueUserName } from "@/services/checkUsername";
 
 //to do: refactor code to make forum a component
 export default function CreateEmployeeForm() {
@@ -23,10 +24,31 @@ export default function CreateEmployeeForm() {
     username: "",
     role: "",
   });
+  const [availableUsername, setAvailableUsername] = useState(null);
+  const debouncer = useRef(null); // use debouncer to stop span ping endpoint when not needed
 
   const user = useAtomValue(userAtom);
   // const token = useAtomValue(tokenAtom);
-
+  //check username validity
+  useEffect(() => {
+    if (!form.username) {
+      setAvailableUsername(null);
+      return;
+    }
+    clearTimeout(debouncer.current);
+    debouncer.current = setTimeout(() => {
+      async function check() {
+        try {
+          const available = await checkUniqueUserName(form.username);
+          // console.log("available: ", available);
+          setAvailableUsername(available);
+        } catch (err) {
+          console.error("Failed to check username", err);
+        }
+      }
+      check();
+    }, 500);
+  }, [form.username]);
   const handleChange = (e) => {
     // const { name, value } = e.target;
     // setForm((prev) => ({ ...prev, [name]: value }));
@@ -114,9 +136,17 @@ export default function CreateEmployeeForm() {
                 placeholder="Enter Username"
                 required
                 name="username"
-                value={FormData.username}
+                value={form.username}
                 onChange={handleChange}
+                isInvalid={availableUsername === false}
+                isValid={availableUsername === true}
               />
+              {availableUsername === false && (
+                <Form.Text className="text-danger">Username is already taken</Form.Text>
+              )}
+              {availableUsername === true && (
+                <Form.Text className="text-success">Username is available</Form.Text>
+              )}
             </Form.Group>
 
             <div key={`inline-radio`} className="mb-3">
