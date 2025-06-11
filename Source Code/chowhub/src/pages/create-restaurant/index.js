@@ -2,19 +2,22 @@
 
 import { useRouter } from "next/router";
 import { apiFetch } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Form, Button, Col, Row } from "react-bootstrap";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import styles from "./createRes.module.css";
 import { toast } from "react-toastify";
 import Top from "../../components/Top";
+import { checkUniqueUserName } from "@/services/checkUsername";
 
 // This page allows a manager to create a new restaurant and their own manager account
 export default function CreateRestaurant() {
   const router = useRouter();
 
   const [validated, setValidated] = useState(false);
+  const [availableUsername, setAvailableUsername] = useState(null);
+  const debouncer = useRef(null); // use debouncer to stop span ping endpoint when not needed
 
   // Holds warning messages to display if something goes wrong (e.g., duplicate email)
   const [warning, setWarning] = useState("");
@@ -30,7 +33,26 @@ export default function CreateRestaurant() {
     emergencyContact: "",
     username: "",
   });
-
+  //check username validity
+  useEffect(() => {
+    if (!formData.username) {
+      setAvailableUsername(null);
+      return;
+    }
+    clearTimeout(debouncer.current);
+    debouncer.current = setTimeout(() => {
+      async function check() {
+        try {
+          const available = await checkUniqueUserName(formData.username);
+          // console.log("available: ", available);
+          setAvailableUsername(available);
+        } catch (err) {
+          console.error("Failed to check username", err);
+        }
+      }
+      check();
+    }, 500);
+  }, [formData.username]);
   // Update formData state as the user types in input fields
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -145,7 +167,15 @@ export default function CreateRestaurant() {
                   value={formData.username}
                   onChange={handleChange}
                   className={styles.inputLarge}
+                  isInvalid={availableUsername === false}
+                  isValid={availableUsername === true}
                 />
+                {availableUsername === false && (
+                  <Form.Text className="text-danger">Username is already taken</Form.Text>
+                )}
+                {availableUsername === true && (
+                  <Form.Text className="text-success">Username is available</Form.Text>
+                )}
               </Form.Group>
             </Col>
             <Col md={8} lg={6}>
