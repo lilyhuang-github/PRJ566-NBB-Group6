@@ -1,0 +1,203 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import DashboardLayout from "@/components/DashboardLayout";
+import { ManagerOnly } from "@/components/Protected";
+import { apiFetch } from "@/lib/api";
+import MenuItemTable from "@/components/MenuItemTable";
+import SummaryCard from "@/components/SummaryCard";
+import CategoryModal from "@/components/CategoryModal";
+
+export default function MenuManagementPage() {
+  const router = useRouter();
+  const { restaurantUsername } = router.query;
+
+  const [menuItems, setMenuItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [categoryCounts, setCategoryCounts] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    loadItems();
+    loadCategories();
+  }, []);
+
+  async function loadItems() {
+    try {
+      const res = await apiFetch(`/menu-management`);
+      const items = Array.isArray(res.menuItems) ? res.menuItems : [];
+      setMenuItems(items);
+      calculateStats(items);
+    } catch (err) {
+      console.error("Failed to load menu items", err);
+      setMenuItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadCategories() {
+    try {
+      const res = await apiFetch(`/categories`);
+      setCategories(res.categories || []);
+    } catch (err) {
+      console.error("Failed to load categories", err);
+      setCategories([]);
+    }
+  }
+
+  function calculateStats(items) {
+    const catMap = {};
+    for (const item of items) {
+      const cat = item.category?.trim() || "Uncategorized";
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    }
+    setCategoryCounts(catMap);
+  }
+
+  const filteredItems = Array.isArray(menuItems)
+    ? menuItems.filter((item) =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
+
+  const handleAddCategory = () => {
+    setSelectedCategory(null);
+    setIsEditing(false);
+    setModalOpen(true);
+  };
+
+  const handleEditCategory = (category) => {
+    setSelectedCategory(category);
+    setIsEditing(true);
+    setModalOpen(true);
+  };
+
+  return (
+    <DashboardLayout>
+      <ManagerOnly>
+        <h1>Menu Management</h1>
+
+        {/* Category + Summary Row */}
+        <div style={{ display: "flex", justifyContent: "space-between", margin: "1.5rem 0", gap: "2rem" }}>
+          {/* Category Table */}
+          <div style={{ flex: 1.5, backgroundColor: "#1E1E2F", padding: "1rem", borderRadius: 8 }}>
+            <h3 style={{ color: "#FFF", marginBottom: "0.75rem" }}>Categories</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #444", color: "#AAA" }}>
+                  <th style={{ textAlign: "left", paddingBottom: 8 }}>Category</th>
+                  <th style={{ textAlign: "right", paddingBottom: 8 }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((cat) => (
+                  <tr key={cat._id} style={{ borderBottom: "1px solid #333" }}>
+                    <td style={{ color: "#FFF", padding: "0.5rem 0" }}>{cat.name}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <button
+                        onClick={() => handleEditCategory(cat)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#4FC3F7" }}
+                      >
+                        ✏️ Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <button
+              onClick={handleAddCategory}
+              style={{
+                marginTop: "1rem",
+                backgroundColor: "#4CAF50",
+                color: "#FFF",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              ➕ Add Category
+            </button>
+          </div>
+
+          {/* Total Menu Items */}
+          <div style={{ flex: 1 }}>
+            <SummaryCard label="Total Menu Items" value={menuItems.length} color="#4CAF50" />
+          </div>
+        </div>
+
+        {/* Add Menu Item Button */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+          <button
+            onClick={() =>
+              router.push(`/${restaurantUsername}/dashboard/menu-management/create`)
+            }
+            style={{
+              backgroundColor: "#388E3C",
+              color: "#FFF",
+              border: "none",
+              padding: "0.5rem 1.25rem",
+              borderRadius: 4,
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Add Menu Item +
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+          <input
+            type="text"
+            placeholder="Search menu items by name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flex: 1,
+              padding: "0.5rem 1rem",
+              borderRadius: 4,
+              border: "1px solid #3A3A4A",
+              backgroundColor: "#2A2A3A",
+              color: "#FFF",
+            }}
+          />
+        </div>
+
+        <MenuItemTable
+          items={filteredItems}
+          restaurantUsername={restaurantUsername}
+          onDelete={(item) => {
+            console.log("Delete", item);
+          }}
+          onEdit={(item) => {
+            router.push(
+              `/${restaurantUsername}/dashboard/menu-management/edit/${item._id}`
+            );
+          }}
+        />
+
+        {/* Category Modal */}
+        {modalOpen && (
+          <CategoryModal
+            open={modalOpen}
+            onClose={() => {
+              setModalOpen(false);
+              loadCategories(); // refresh list
+            }}
+            initialName={selectedCategory?.name || ""}
+            categoryId={selectedCategory?._id || null}
+            isEditing={isEditing}
+          />
+        )}
+      </ManagerOnly>
+    </DashboardLayout>
+  );
+}
