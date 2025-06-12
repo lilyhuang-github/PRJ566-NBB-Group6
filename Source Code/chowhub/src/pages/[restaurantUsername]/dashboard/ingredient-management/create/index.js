@@ -128,13 +128,15 @@ export default function CreateIngredientForm() {
       if (searchTerm.trim() !== "") {
         try {
           const res = await fetch(
-            `https://api.spoonacular.com/food/ingredients/search?query=${searchTerm}&number=5&apiKey=${process.env.NEXT_PUBLIC_SPOONACULARE_API_KEY}`,
+            `https://api.spoonacular.com/food/ingredients/search?query=${searchTerm}&number=5&apiKey=${process.env.NEXT_PUBLIC_SPOONACULARE_API_KEY2}`,
           );
           const data = await res.json();
           setSuggestions(data.results);
         } catch (err) {
           console.error("Spoonacular error:", err);
         }
+      } else {
+        setSuggestions([]);
       }
     }, 400);
   }, [searchTerm]);
@@ -158,23 +160,24 @@ export default function CreateIngredientForm() {
       <ManagerOnly>
         <h1>Create New Ingredient</h1>
 
-        <Form className={styles.FormContainer} onSubmit={handleSubmit}>
+        <Form className={styles.formWrapper} onSubmit={handleSubmit}>
           {/* Spoonacular Search Field */}
-          <Form.Group className="mb-3" controlId="spoonacularSearch">
+          <Form.Group controlId="spoonacularSearch">
             <Form.Label>Search Ingredient</Form.Label>
             <Form.Control
               type="text"
               placeholder="Search from Spoonacular..."
+              className={styles.ingredientLabel}
               value={searchTerm}
               onChange={handleSearchChange}
             />
           </Form.Group>
-          {suggestions.length > 0 && (
-            <ul className="list-group mt-2">
+          {Array.isArray(suggestions) && suggestions.length > 0 && (
+            <ul className={`list-group mt-2 ${styles.suggestionsList}`}>
               {suggestions.map((item) => (
                 <li
                   key={item.id}
-                  className="list-group-item list-group-item-action d-flex align-items-center"
+                  className={`list-group-item list-group-item-action d-flex align-items-center ${styles.suggestionsListItem}`}
                   style={{ cursor: "pointer" }}
                   onClick={() => handleSelectSuggestion(item)}
                 >
@@ -200,6 +203,7 @@ export default function CreateIngredientForm() {
               required
               name="name"
               value={form.name}
+              className={styles.ingredientLabel}
               onChange={handleChange}
             />
             <Form.Text style={{ color: "#ccc" }}>Name of the Ingredient must be unique.</Form.Text>
