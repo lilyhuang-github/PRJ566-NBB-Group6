@@ -17,6 +17,7 @@ export default function EditEmployee() {
   // Holds warning messages to display if something goes wrong (e.g., duplicate email)
   const [warning, setWarning] = useState("");
   const user = useAtomValue(userAtom);
+  const [isOnlyManager, setIsOnlyManager] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -38,6 +39,7 @@ export default function EditEmployee() {
                         phone
                         emergencyContact`
     */
+
   useEffect(() => {
     if (router.isReady) {
       const { username, fullName, email, role, userStatus, phone, emergencyContact, _id } =
@@ -58,6 +60,19 @@ export default function EditEmployee() {
       setUserId(_id);
     }
   }, [router.isReady, router.query]);
+  useEffect(() => {
+    async function checkNumberOfManagers() {
+      const data = await apiFetch("/restaurant");
+      console.log(data);
+      if (data.totalManagers > 1 && formData.role === "manager") {
+        return;
+      }
+      if (formData.role == "manager") {
+        setIsOnlyManager(true);
+      }
+    }
+    checkNumberOfManagers();
+  }, [formData.role, userId, router.query.role]);
   const handleChange = (e) => {
     // const { name, value } = e.target;
     // setForm((prev) => ({ ...prev, [name]: value }));
@@ -158,17 +173,19 @@ export default function EditEmployee() {
               />
             </Form.Group>
             <div key={`inline-radio-role`} className="mb-3">
-              <Form.Check
-                inline
-                label="Staff"
-                name="role"
-                type="radio"
-                id={`inline-radio-1`}
-                required
-                value={"staff"}
-                checked={formData.role === "staff"}
-                onChange={handleChange}
-              />
+              {isOnlyManager === false && (
+                <Form.Check
+                  inline
+                  label="Staff"
+                  name="role"
+                  type="radio"
+                  id={`inline-radio-1`}
+                  required
+                  value={"staff"}
+                  checked={formData.role === "staff"}
+                  onChange={handleChange}
+                />
+              )}
               <Form.Check
                 inline
                 label="Manager"
@@ -180,7 +197,13 @@ export default function EditEmployee() {
                 checked={formData.role === "manager"}
                 onChange={handleChange}
               />
+              {isOnlyManager === true && (
+                <Form.Text className="text-danger">
+                  This user is the only manager. We have disabled setting this user as staff
+                </Form.Text>
+              )}
             </div>
+            {}
             <Form.Check // prettier-ignore
               type="switch"
               id="custom-switch"
