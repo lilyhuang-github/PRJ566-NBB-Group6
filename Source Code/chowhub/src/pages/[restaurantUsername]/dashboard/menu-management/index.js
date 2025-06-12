@@ -6,6 +6,9 @@ import { apiFetch } from "@/lib/api";
 import MenuItemTable from "@/components/MenuItemTable";
 import SummaryCard from "@/components/SummaryCard";
 import CategoryModal from "@/components/CategoryModal";
+import { Button, ModalDialog } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
+import Style from "./menuManage.module.css";
 
 export default function MenuManagementPage() {
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function MenuManagementPage() {
   const [categories, setCategories] = useState([]);
   const [categoryCounts, setCategoryCounts] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -59,9 +63,7 @@ export default function MenuManagementPage() {
   }
 
   const filteredItems = Array.isArray(menuItems)
-    ? menuItems.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? menuItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
 
   const handleAddCategory = () => {
@@ -76,13 +78,32 @@ export default function MenuManagementPage() {
     setModalOpen(true);
   };
 
+  const handleDeleteCategory = (category) => {
+    setSelectedCategory(category);
+    console.log(category);
+    setDeleteModalOpen(true);
+  };
+  const handleDeleteCategoryConfirm = async (category) => {
+    setDeleteModalOpen(false);
+    const res = await apiFetch(`/categories/${category._id}`, {
+      method: "DELETE",
+    });
+    loadCategories();
+  };
   return (
     <DashboardLayout>
       <ManagerOnly>
         <h1>Menu Management</h1>
 
         {/* Category + Summary Row */}
-        <div style={{ display: "flex", justifyContent: "space-between", margin: "1.5rem 0", gap: "2rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            margin: "1.5rem 0",
+            gap: "2rem",
+          }}
+        >
           {/* Category Table */}
           <div style={{ flex: 1.5, backgroundColor: "#1E1E2F", padding: "1rem", borderRadius: 8 }}>
             <h3 style={{ color: "#FFF", marginBottom: "0.75rem" }}>Categories</h3>
@@ -99,8 +120,24 @@ export default function MenuManagementPage() {
                     <td style={{ color: "#FFF", padding: "0.5rem 0" }}>{cat.name}</td>
                     <td style={{ textAlign: "right" }}>
                       <button
+                        onClick={() => handleDeleteCategory(cat)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#4FC3F7",
+                        }}
+                      >
+                        ❌ Delete
+                      </button>
+                      <button
                         onClick={() => handleEditCategory(cat)}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "#4FC3F7" }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#4FC3F7",
+                        }}
                       >
                         ✏️ Edit
                       </button>
@@ -135,9 +172,7 @@ export default function MenuManagementPage() {
         {/* Add Menu Item Button */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
           <button
-            onClick={() =>
-              router.push(`/${restaurantUsername}/dashboard/menu-management/create`)
-            }
+            onClick={() => router.push(`/${restaurantUsername}/dashboard/menu-management/create`)}
             style={{
               backgroundColor: "#388E3C",
               color: "#FFF",
@@ -178,9 +213,7 @@ export default function MenuManagementPage() {
             console.log("Delete", item);
           }}
           onEdit={(item) => {
-            router.push(
-              `/${restaurantUsername}/dashboard/menu-management/edit/${item._id}`
-            );
+            router.push(`/${restaurantUsername}/dashboard/menu-management/edit/${item._id}`);
           }}
         />
 
@@ -197,6 +230,34 @@ export default function MenuManagementPage() {
             isEditing={isEditing}
           />
         )}
+        {/* Delete category modal */}
+
+        <Modal
+          contentClassName={Style.modalContent}
+          centered
+          show={deleteModalOpen}
+          onHide={() => setDeleteModalOpen(false)}
+        >
+          <Modal.Header className={Style.modalHeader}>
+            <Modal.Title>Delete Category</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body className={Style.modalBody}>
+            <p>
+              Are you sure you want to delete{" "}
+              {selectedCategory != null ? selectedCategory.name : ""}.
+            </p>
+          </Modal.Body>
+
+          <Modal.Footer className={Style.modalFooter}>
+            <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>
+              Close
+            </Button>
+            <Button variant="danger" onClick={() => handleDeleteCategoryConfirm(selectedCategory)}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </ManagerOnly>
     </DashboardLayout>
   );
