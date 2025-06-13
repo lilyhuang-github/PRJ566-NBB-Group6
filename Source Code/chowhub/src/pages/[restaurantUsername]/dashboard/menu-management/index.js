@@ -21,6 +21,8 @@ export default function MenuManagementPage() {
   const [categoryCounts, setCategoryCounts] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteMenuModalOpen, setDeleteMenuModalOpen] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -89,6 +91,13 @@ export default function MenuManagementPage() {
       method: "DELETE",
     });
     loadCategories();
+  };
+  const handleDeleteMenuItem = async (menuItem) => {
+    setDeleteMenuModalOpen(false);
+    const res = await apiFetch(`/menu-management/${menuItem._id}`, {
+      method: "DELETE",
+    });
+    loadItems();
   };
   return (
     <DashboardLayout>
@@ -210,7 +219,9 @@ export default function MenuManagementPage() {
           items={filteredItems}
           restaurantUsername={restaurantUsername}
           onDelete={(item) => {
-            console.log("Delete", item);
+            // console.log("Delete", item);
+            setSelectedMenuItem(item);
+            setDeleteMenuModalOpen(true);
           }}
           onEdit={(item) => {
             router.push(`/${restaurantUsername}/dashboard/menu-management/edit/${item._id}`);
@@ -254,6 +265,35 @@ export default function MenuManagementPage() {
               Close
             </Button>
             <Button variant="danger" onClick={() => handleDeleteCategoryConfirm(selectedCategory)}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Menu Item modal */}
+
+        <Modal
+          contentClassName={Style.modalContent}
+          centered
+          show={deleteMenuModalOpen}
+          onHide={() => setDeleteMenuModalOpen(false)}
+        >
+          <Modal.Header className={Style.modalHeader}>
+            <Modal.Title>Delete Menu Item</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body className={Style.modalBody}>
+            <p>
+              Are you sure you want to delete{" "}
+              {selectedMenuItem != null ? selectedMenuItem.name : ""}.
+            </p>
+          </Modal.Body>
+
+          <Modal.Footer className={Style.modalFooter}>
+            <Button variant="secondary" onClick={() => setDeleteMenuModalOpen(false)}>
+              Close
+            </Button>
+            <Button variant="danger" onClick={() => handleDeleteMenuItem(selectedMenuItem)}>
               Delete
             </Button>
           </Modal.Footer>
