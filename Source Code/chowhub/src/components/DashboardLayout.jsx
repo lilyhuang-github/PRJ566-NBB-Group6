@@ -190,6 +190,7 @@ import {
   FiX,
   FiLogOut,
 } from "react-icons/fi";
+import DashboardHeader from "./DashboardHeader";
 
 const NAV_ITEMS = [
   { label: "Overview", icon: <FiHome />, path: "" },
@@ -319,6 +320,7 @@ export default function DashboardLayout({ children }) {
             overflowY: "auto",
           }}
         >
+          <DashboardHeader />
           {children}
         </div>
       </div>
