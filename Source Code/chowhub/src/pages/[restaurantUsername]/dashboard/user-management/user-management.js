@@ -72,7 +72,6 @@ export default function UserManagementPage() {
               <SummaryCard label="Total Users" value={totals.total} color="#FF8C00" />
               <SummaryCard label="Active Users" value={totals.active} color="#4CAF50" />
               <SummaryCard label="Inactive Users" value={totals.deactivated} color="#E53935" />
-              <NotificationBell></NotificationBell>
             </div>
 
             {/* Create User button aligned right */}
