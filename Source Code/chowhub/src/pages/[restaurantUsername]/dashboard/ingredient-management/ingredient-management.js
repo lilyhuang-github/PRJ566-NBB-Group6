@@ -134,7 +134,7 @@ export default function IngredientManagementPage() {
             <IngredientTable
               ingredients={ingredients}
               onEdit={(ingredient) => {
-                router.push(`/${restaurantUsername}/dashboard/ingredient-management/edit/${ingredient.name}`);
+                router.push(`/${restaurantUsername}/dashboard/ingredient-management/edit/${ingredient.id}`);
               }}
               onDelete={(ingredient) => {
                 // TODO: Implement delete functionality
