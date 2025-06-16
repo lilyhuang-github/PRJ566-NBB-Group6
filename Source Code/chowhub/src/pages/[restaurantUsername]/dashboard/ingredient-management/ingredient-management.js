@@ -5,6 +5,8 @@ import { ManagerOnly } from "@/components/Protected";
 import SummaryCard from "@/components/SummaryCard";
 import IngredientTable from "@/components/IngredientTable";
 import { apiFetch } from "@/lib/api";
+import { Modal, Button } from "react-bootstrap";
+import Style from "../menu-management/menuManage.module.css";
 
 export default function IngredientManagementPage() {
   const router = useRouter();
@@ -22,36 +24,53 @@ export default function IngredientManagementPage() {
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: itemsPerPage.toString(),
-          search: searchTerm,
-        }).toString();
-        // The API now returns overall stock counts along with paginated ingredients
-        const { ingredients: list, total, totalLowStock, totalCriticalStock } = await apiFetch(`/ingredients?${params}`);
-        
-        setIngredients(list);
-        setTotalItems(total);
+  const [deleteIngredientModalOpen, setDeleteIngredientModalOpen] = useState(false);
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
 
-        // Set totals from the overall counts returned by the API
-        setTotals({
-          totalIngredients: total,
-          lowStock: totalLowStock,
-          criticalStock: totalCriticalStock,
-        });
-      } catch (err) {
-        console.error("Failed to load ingredients", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadIngredients = async () => {
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        search: searchTerm,
+      }).toString();
+      const {
+        ingredients: list,
+        total,
+        totalLowStock,
+        totalCriticalStock,
+      } = await apiFetch(`/ingredients?${params}`);
+
+      setIngredients(list);
+      setTotalItems(total);
+      setTotals({
+        totalIngredients: total,
+        lowStock: totalLowStock,
+        criticalStock: totalCriticalStock,
+      });
+    } catch (err) {
+      console.error("Failed to load ingredients", err);
+    } finally {
+      setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadIngredients();
   }, [currentPage, searchTerm]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const handleDeleteIngredient = async () => {
+    if (!selectedIngredient) return;
+    setDeleteIngredientModalOpen(false);
+    try {
+      await apiFetch(`/ingredients/${selectedIngredient.id}`, { method: "DELETE" });
+      await loadIngredients();
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -62,14 +81,12 @@ export default function IngredientManagementPage() {
           <p>Loading ingredients…</p>
         ) : (
           <>
-            {/* Summary Cards */}
             <div style={{ display: "flex", gap: "1rem", margin: "1.5rem 0" }}>
               <SummaryCard label="Total Ingredients" value={totals.totalIngredients} color="#4CAF50" />
               <SummaryCard label="Low Stock" value={totals.lowStock} color="#FF8C00" />
               <SummaryCard label="Critical Stock" value={totals.criticalStock} color="#E53935" />
             </div>
 
-            {/* Add Ingredient Button */}
             <div
               style={{
                 display: "flex",
@@ -83,7 +100,7 @@ export default function IngredientManagementPage() {
                   router.push(`/${restaurantUsername}/dashboard/ingredient-management/create`)
                 }
                 style={{
-                  backgroundColor: "#388E3C", // darker green
+                  backgroundColor: "#388E3C",
                   color: "#FFF",
                   border: "none",
                   padding: "0.5rem 1.25rem",
@@ -97,7 +114,6 @@ export default function IngredientManagementPage() {
               </button>
             </div>
 
-            {/* Search Bar */}
             <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem", padding: "0 1rem" }}>
               <svg
                 style={{ marginRight: "0.5rem", color: "#FFF" }}
@@ -130,17 +146,17 @@ export default function IngredientManagementPage() {
               />
             </div>
 
-            {/* Ingredient Table with Pagination */}
             <IngredientTable
               ingredients={ingredients}
               onEdit={(ingredient) => {
                 router.push(`/${restaurantUsername}/dashboard/ingredient-management/edit/${ingredient.id}`);
               }}
               onDelete={(ingredient) => {
-                // TODO: Implement delete functionality
-                console.log("Delete", ingredient);
+                setSelectedIngredient(ingredient);
+                setDeleteIngredientModalOpen(true);
               }}
             />
+
             <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
@@ -160,6 +176,32 @@ export default function IngredientManagementPage() {
                 </button>
               ))}
             </div>
+
+            {/* Delete Ingredient Modal */}
+            <Modal
+              contentClassName={Style.modalContent}
+              centered
+              show={deleteIngredientModalOpen}
+              onHide={() => setDeleteIngredientModalOpen(false)}
+            >
+              <Modal.Header className={Style.modalHeader}>
+                <Modal.Title>Delete Ingredient</Modal.Title>
+              </Modal.Header>
+              <Modal.Body className={Style.modalBody}>
+                <p>
+                  Are you sure you want to delete{" "}
+                  <strong>{selectedIngredient?.name}</strong>?
+                </p>
+              </Modal.Body>
+              <Modal.Footer className={Style.modalFooter}>
+                <Button variant="secondary" onClick={() => setDeleteIngredientModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="danger" onClick={handleDeleteIngredient}>
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal>
           </>
         )}
       </ManagerOnly>
