@@ -65,7 +65,7 @@ export default function IngredientManagementPage() {
     if (!selectedIngredient) return;
     setDeleteIngredientModalOpen(false);
     try {
-      await apiFetch(`/ingredients/${selectedIngredient.id}`, { method: "DELETE" });
+      await apiFetch(`/ingredients/${selectedIngredient._id}`, { method: "DELETE" });
       await loadIngredients();
     } catch (err) {
       console.error("Delete failed", err);
@@ -149,7 +149,7 @@ export default function IngredientManagementPage() {
             <IngredientTable
               ingredients={ingredients}
               onEdit={(ingredient) => {
-                router.push(`/${restaurantUsername}/dashboard/ingredient-management/edit/${ingredient.id}`);
+                router.push(`/${restaurantUsername}/dashboard/ingredient-management/edit/${ingredient._id}`);
               }}
               onDelete={(ingredient) => {
                 setSelectedIngredient(ingredient);
