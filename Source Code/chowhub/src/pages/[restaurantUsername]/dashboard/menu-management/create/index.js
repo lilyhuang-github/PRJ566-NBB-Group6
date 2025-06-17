@@ -11,13 +11,13 @@ import { tokenAtom } from "@/store/atoms";
 import { getDefaultStore } from "jotai";
 
 export default function CreateMenuItemForm() {
-  const [form, setForm] = useState({
+  const getInitialFormState = () => ({
     name: "",
     description: "",
     category: "",
-    isInventoryControlled: false,
     imageFile: null,
     imageUrlFromSpoonacular: "",
+    isInventoryControlled: false,
     variations: [
       {
         name: "Regular",
@@ -28,6 +28,7 @@ export default function CreateMenuItemForm() {
     ],
   });
 
+  const [form, setForm] = useState(getInitialFormState());
   const router = useRouter();
   const { restaurantUsername } = router.query;
   const store = getDefaultStore();
@@ -38,6 +39,7 @@ export default function CreateMenuItemForm() {
   const [warning, setWarning] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [inventoryIgredients, setInventoryIgredients] = useState([]);
 
   async function loadCategories() {
     try {
@@ -49,8 +51,19 @@ export default function CreateMenuItemForm() {
     }
   }
 
+  async function fetchIngredients() {
+    try {
+      const res = await apiFetch("/ingredients?page=1&limit=1000");
+      setInventoryIgredients(res.ingredients || []);
+    } catch (err) {
+      console.error("Failed to fetch ingredients:", err);
+      setWarning("Failed to fetch ingredients");
+    }
+  }
+
   useEffect(() => {
     loadCategories();
+    fetchIngredients();
     const timeoutId = setTimeout(async () => {
       if (searchTerm.trim() !== "") {
         try {
@@ -104,6 +117,7 @@ export default function CreateMenuItemForm() {
     } else if (field === "name") {
       ing[field] = value;
       ing.isChecked = false;
+      checkIngredients(vIndex, iIndex);
     } else {
       ing[field] = value;
     }
@@ -132,15 +146,10 @@ export default function CreateMenuItemForm() {
   const checkIngredients = async (vIndex, iIndex) => {
     const name = form.variations[vIndex].ingredients[iIndex].name.trim().toLowerCase();
 
-    if (!name) {
-      toast.error("Enter an ingredient name first");
-      return;
-    }
-
     try {
       const res = await apiFetch(`/ingredients/search?name=${name}`);
+
       if (res && res.found && res.ingredient && res.ingredient._id) {
-        toast.success(`Ingredient "${name}" exists in inventory`);
         const newVariations = [...form.variations];
         const ingredient = newVariations[vIndex].ingredients[iIndex];
 
@@ -149,13 +158,14 @@ export default function CreateMenuItemForm() {
         ingredient.ingredientId = res.ingredient._id;
         ingredient.inventoryQuantity = res.ingredient.quantity;
 
-        setForm({ ...form, variations: newVariations });
-      } else {
-        toast.error(`Ingredient "${name}" not found`);
+        setForm((prev) => ({
+          ...prev,
+          variations: newVariations,
+        }));
       }
     } catch (err) {
       if (err.message === "API Error") {
-        toast.error("The ingredient does not exist.");
+        return;
       } else {
         console.error("Unexpected error:", err);
         toast.error("Something went wrong.");
@@ -213,14 +223,62 @@ export default function CreateMenuItemForm() {
     setForm({ ...form, variations: newVariations, isInventoryControlled });
   };
 
+  // Adds a selected inventory ingredient to a variation if not already present, and updates the form state.
+  const handleAddIngredientFromSelect = (vIndex, selectedId) => {
+    // Exit early if no ingredient was selected from the dropdown
+    if (!selectedId) return;
+
+    // Find the selected ingredient from the inventory list by matching the ID
+    const selected = inventoryIgredients.find((ing) => ing._id === selectedId);
+    if (!selected) return; // If not found (invalid ID), do nothing
+
+    // Rebuild the variations array with updated ingredient list for the targeted variation
+    const updatedVariations = form.variations.map((variation, idx) => {
+      // Skip all variations except the one at vIndex
+      if (idx !== vIndex) return variation;
+
+      // Check if the selected ingredient is already present in the current variation's ingredients
+      const alreadyExists = variation.ingredients.some(
+        (ing) => ing.name.trim().toLowerCase() === selected.name.trim().toLowerCase(),
+      );
+      if (alreadyExists) return variation; // Prevent duplicates
+
+      // Construct a new ingredient object with default values
+      const newIngredient = {
+        name: selected.name, // Name from inventory
+        quantityUsed: 0, // Default usage quantity
+        unit: selected.unit, // Unit of measurement (e.g. kg, litre)
+        track: false, // Tracking is off by default
+        ingredientId: selected._id, // Store the ID for backend reference
+        isChecked: true, // Mark as checked (validated)
+        inventoryQuantity: selected.quantity || 0, // Current available inventory
+        quantityOriginal: "", // Optional field (e.g. used by Spoonacular)
+      };
+
+      // Return the updated variation with the new ingredient added to the list
+      return {
+        ...variation,
+        ingredients: [...variation.ingredients, newIngredient],
+      };
+    });
+
+    // Update the form state with the new variations list
+    setForm({ ...form, variations: updatedVariations });
+  };
+
+  // Loads full recipe info from Spoonacular and populates menu form with basic data and ingredients.
   const handleSelectSuggestion = async (item) => {
     try {
+      // Build the Spoonacular API URL to fetch full recipe information
       const URL = `https://api.spoonacular.com/recipes/${item.id}/information`;
+
+      // Make a GET request to the Spoonacular API using the provided API key
       const res = await fetch(`${URL}?apiKey=${process.env.NEXT_PUBLIC_SPOONACULARE_API_KEY3}`);
+
+      // Parse the JSON response
       const data = await res.json();
 
-      console.log(data);
-
+      // Transform the array of extendedIngredients to match your ingredient schema
       const mappedIngredients = (data.extendedIngredients || []).map((ing) => ({
         name: ing.name.toLowerCase(),
         quantityUsed: ing.amount || "",
@@ -231,25 +289,40 @@ export default function CreateMenuItemForm() {
         quantityOriginal: ing.original || "",
       }));
 
-      // Update form state
+      // Update the overall menu item form state
       setForm((prev) => {
+        // Clone the variations array from previous form state
         const updatedVariations = [...prev.variations];
-        const regularIndex = updatedVariations.findIndex((v) => v.name === "Regular");
-        if (regularIndex !== -1) {
-          updatedVariations[regularIndex].ingredients = mappedIngredients;
+
+        // Directly update the variation at index 0
+        if (updatedVariations.length > 0) {
+          updatedVariations[0].ingredients = mappedIngredients;
         }
+
+        // Return the full updated form object
         return {
           ...prev,
           name: item.title,
           imageUrlFromSpoonacular: item.image,
-          description: data.summary.replace(/<\/?[^>]+(>|$)/g, ""),
+          description: data.summary.replace(/<\/?[^>]+(>|$)/g, ""), // Clean HTML tags from summary
           variations: updatedVariations,
         };
       });
 
+      // Delay checkIngredients calls slightly to ensure form state has updated
+      setTimeout(() => {
+        mappedIngredients.forEach((_, iIndex) => {
+          checkIngredients(0, iIndex); // always variation index 0
+        });
+      }, 100); // 100ms delay is usually safe
+
+      // Clear the suggestion list once selected
       setSuggestions([]);
+
+      // Clear the search input field
       setSearchTerm("");
     } catch (err) {
+      // If something goes wrong during fetch or update, log the error
       console.error("Failed to load recipe info:", err);
     }
   };
@@ -338,7 +411,12 @@ export default function CreateMenuItemForm() {
                   <img
                     src={`${item.image}`}
                     alt={item.name}
-                    style={{ width: 40, height: 40, objectFit: "cover", marginRight: "1rem" }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      objectFit: "cover",
+                      marginRight: "1rem",
+                    }}
                   />
                   {item.title}
                 </li>
@@ -424,11 +502,9 @@ export default function CreateMenuItemForm() {
                   )}
                 </Col>
               </Row>
-
               <Button className="mt-4 mb-3" onClick={() => handleAddIngredient(vIndex)}>
                 + Add Ingredient
               </Button>
-
               {vIndex > 0 && (
                 <>
                   <br />
@@ -437,74 +513,88 @@ export default function CreateMenuItemForm() {
                   </Button>
                 </>
               )}
-
-              {variation.ingredients.map((ing, iIndex) => (
-                <Row key={iIndex} className="mt-2 align-items-end">
+              <>
+                <Row className="mb-2">
                   <Col>
-                    <Form.Control
-                      placeholder="Ingredient Name"
-                      className={styles.placeholderInput}
-                      value={ing.name}
-                      onChange={(e) =>
-                        handleIngredientChange(vIndex, iIndex, "name", e.target.value)
-                      }
-                    />
-                  </Col>
-                  {ing.isChecked && (
-                    <>
-                      <Col>
-                        <Form.Control
-                          type="text"
-                          value={`-> ${ing.inventoryQuantity} / ${ing.unit || ""}`}
-                          disabled
-                          readOnly
-                          className={styles.ingredientLabel}
-                        />
-                      </Col>
-
-                      <Col>
-                        <Form.Control
-                          type="number"
-                          className={styles.ingredientLabel}
-                          placeholder="Quantity Used"
-                          value={ing.quantityUsed}
-                          onChange={(e) =>
-                            handleIngredientChange(vIndex, iIndex, "quantityUsed", e.target.value)
-                          }
-                        />
-                      </Col>
-
-                      <Col xs="auto">
-                        <Form.Check
-                          type="checkbox"
-                          label="Track"
-                          disabled={!ing.isChecked}
-                          checked={ing.track}
-                          onChange={(e) =>
-                            handleIngredientChange(vIndex, iIndex, "track", e.target.checked)
-                          }
-                        />
-                      </Col>
-                    </>
-                  )}
-
-                  {!ing.isChecked && (
-                    <>
-                      <Col>
-                        <Button onClick={() => checkIngredients(vIndex, iIndex)}>
-                          Check Inventory
-                        </Button>
-                      </Col>
-                    </>
-                  )}
-
-                  <Col xs="auto">
-                    <Button variant="danger" onClick={() => handleRemoveIngredient(vIndex, iIndex)}>
-                      Remove
-                    </Button>
+                    <Form.Select
+                      value=""
+                      onChange={(e) => {
+                        handleAddIngredientFromSelect(vIndex, e.target.value);
+                        e.target.value = "";
+                      }}
+                    >
+                      <option value="">Select from inventory</option>
+                      {inventoryIgredients.map((ing) => (
+                        <option key={ing._id} value={ing._id}>
+                          {ing.name} ({ing.quantity} {ing.unit})
+                        </option>
+                      ))}
+                    </Form.Select>
                   </Col>
                 </Row>
-              ))}
+
+                {form.variations[vIndex].ingredients.map((ing, iIndex) => (
+                  <Row key={iIndex} className="mt-2 align-items-end">
+                    <Col style={{ flex: "0 0 250px" }}>
+                      <Form.Control
+                        placeholder="Ingredient Name"
+                        className={styles.placeholderInput}
+                        value={ing.name}
+                        onChange={(e) =>
+                          handleIngredientChange(vIndex, iIndex, "name", e.target.value)
+                        }
+                      />
+                    </Col>
+
+                    {ing.isChecked && (
+                      <>
+                        <Col>
+                          <Form.Control
+                            type="text"
+                            value={`→ ${ing.inventoryQuantity} / ${ing.unit || ""}`}
+                            disabled
+                            readOnly
+                            className={styles.ingredientLabel}
+                          />
+                        </Col>
+
+                        <Col>
+                          <Form.Control
+                            type="number"
+                            className={styles.ingredientLabel}
+                            placeholder="Quantity Used"
+                            value={ing.quantityUsed}
+                            onChange={(e) =>
+                              handleIngredientChange(vIndex, iIndex, "quantityUsed", e.target.value)
+                            }
+                          />
+                        </Col>
+
+                        <Col xs="auto">
+                          <Form.Check
+                            type="checkbox"
+                            label="Track"
+                            disabled={!ing.isChecked}
+                            checked={ing.track}
+                            onChange={(e) =>
+                              handleIngredientChange(vIndex, iIndex, "track", e.target.checked)
+                            }
+                          />
+                        </Col>
+                      </>
+                    )}
+
+                    <Col xs="auto">
+                      <Button
+                        variant="danger"
+                        onClick={() => handleRemoveIngredient(vIndex, iIndex)}
+                      >
+                        Remove
+                      </Button>
+                    </Col>
+                  </Row>
+                ))}
+              </>
             </div>
           ))}
 
@@ -515,7 +605,13 @@ export default function CreateMenuItemForm() {
           {warning && <p className="text-danger">{warning}</p>}
 
           <div className="d-flex justify-content-end mt-4">
-            <Button type="submit">Create Menu Item</Button>
+            <Button variant="secondary" onClick={() => setForm(getInitialFormState())}>
+              Reset Form
+            </Button>
+
+            <Button type="submit" className="ms-3">
+              Create Menu Item
+            </Button>
           </div>
         </Form>
       </ManagerOnly>
