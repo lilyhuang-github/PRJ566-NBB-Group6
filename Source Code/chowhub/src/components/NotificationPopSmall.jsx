@@ -32,7 +32,7 @@ export default function NotificationPopSmall({from, message, seen, timestamp, ty
     >
       <div className="d-flex justify-content-between align-items-center">
         <strong>{from} {seen? "👁" : ""}</strong>
-        <small className="text-muted">{formatTime}</small>
+        <small className="text">{formatTime}</small>
         <Button onClick={() => notificationSeen(notificationId)}>Seen </Button>
       </div>
       <div className="text">{message}</div>
