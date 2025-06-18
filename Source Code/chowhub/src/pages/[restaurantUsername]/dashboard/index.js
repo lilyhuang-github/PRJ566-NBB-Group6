@@ -173,25 +173,17 @@
 //     </Protected>
 //   );
 // }
-
+// pages/[restaurantUsername]/dashboard/index.js
 import DashboardLayout from "@/components/DashboardLayout";
-import { useAtomValue } from "jotai";
-import { userAtom } from "@/store/atoms";
 import Protected from "@/components/Protected";
 
 export default function OverviewPage() {
-  const user = useAtomValue(userAtom);
-
-  // Guard to prevent crash during logout/redirect
-  if (!user) return null;
-
   return (
     <Protected>
       <DashboardLayout>
-        {/* Placeholder for Overview content */}
-        <h1>Overview - {user.restaurantName}</h1>
-        <p>Welcome {user.firstName} to your dashboard. More features coming soon.</p>
+        {}
       </DashboardLayout>
     </Protected>
   );
 }
+

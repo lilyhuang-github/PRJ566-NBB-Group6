@@ -6,7 +6,7 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
   const columns = [
     { header: "Name", accessor: "name" },
     { header: "Image", accessor: "image" },
-    { header: "Category", accessor: "category" },
+    { header: "Category", accessor: "categoryName" },
     { header: "Price (Range)", accessor: "priceRange" },
     { header: "Inventory Controlled", accessor: "isInventoryControlled" },
     { header: "Variations", accessor: "variations" },
@@ -126,7 +126,7 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                     ) : null}
                   </td>
                   <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
-                    {item.category}
+                    {item.categoryName}
                   </td>
                   <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
                     {priceRange}
@@ -170,8 +170,10 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                         <ul style={{ margin: "0.5rem 0 0 1.5rem" }}>
                           {v.ingredients?.map((ing, ii) => (
                             <li key={`ing-${ii}`}>
-                              {ing.name} — {ing.quantityUsed} unit(s)
-                              {ing.track ? " 🔍 Tracked" : ""}
+                              {ing.name} —{" "}
+                              {ing.track
+                                ? `${ing.quantityUsed} ${ing.unit || ""}`.trim()
+                                : `${ing.quantityUsed}`}
                             </li>
                           ))}
                         </ul>
