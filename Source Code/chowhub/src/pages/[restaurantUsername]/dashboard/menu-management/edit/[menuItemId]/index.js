@@ -69,7 +69,7 @@ export default function EditMenuItem() {
         setIngredientOptions(
           (ingredientsRes.ingredients || []).map(ing => ({
             ...ing,
-            _id: ing.id 
+            _id: ing._id 
           }))
         );
 
