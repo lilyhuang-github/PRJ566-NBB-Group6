@@ -45,6 +45,9 @@ export default function NotificationBell(){
       else if(messageType == "System"){
         setSelectedDropDown("System");
       }
+      else{
+        setSelectedDropDown("All");
+      }
     }
 
     return(
@@ -109,7 +112,10 @@ export default function NotificationBell(){
           ) : (
             notifications
             .filter(n => {
-          const matchesType = selectedDropDown === "All" || n.type === selectedDropDown;
+              console.log("Notification types:", notifications.map(n => n.type));
+console.log("selectedDropDown:", selectedDropDown);
+console.log("unreadFilter:", unreadFilter);
+          const matchesType = selectedDropDown === "All" || n.from.toLowerCase() === selectedDropDown.toLowerCase();
             const matchesUnread = !unreadFilter || !n.seen;
            return matchesType && matchesUnread;
             })
