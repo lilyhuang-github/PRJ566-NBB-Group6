@@ -1,5 +1,3 @@
-// src/components/VariationTable.js
-
 import React from "react";
 
 export default function VariationTable({ variations = [], onEdit, onDelete }) {
@@ -14,18 +12,36 @@ export default function VariationTable({ variations = [], onEdit, onDelete }) {
     <div style={{ display: "flex", gap: "0.5rem", padding: "0 0.5rem" }}>
       <button
         onClick={() => onEdit(row)}
-        style={{ background: "none", border: "none", cursor: "pointer", color: "#FFF" }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#FFF",
+        }}
       >
         ✏️
       </button>
       <button
         onClick={() => onDelete(row)}
-        style={{ background: "none", border: "none", cursor: "pointer", color: "#FFF" }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#FFF",
+        }}
       >
         🗑️
       </button>
     </div>
   );
+
+  // Helper function to safely format prices/costs
+  const formatCurrency = (value) => {
+    if (typeof value === "number" && !isNaN(value)) {
+      return value.toFixed(2);
+    }
+    return "0.00"; // Default value in case of invalid or missing price/cost
+  };
 
   return (
     <div
@@ -72,11 +88,14 @@ export default function VariationTable({ variations = [], onEdit, onDelete }) {
               <tr
                 key={index}
                 style={{
-                  backgroundColor: isEven ? "transparent" : "rgba(255,255,255,0.03)",
+                  backgroundColor: isEven
+                    ? "transparent"
+                    : "rgba(255,255,255,0.03)",
                   transition: "background 0.2s",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(255,255,255,0.08)")
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = isEven
@@ -84,9 +103,15 @@ export default function VariationTable({ variations = [], onEdit, onDelete }) {
                     : "rgba(255,255,255,0.03)")
                 }
               >
-                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>{row.name}</td>
-                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>${row.price.toFixed(2)}</td>
-                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>${row.cost.toFixed(2)}</td>
+                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>
+                  {row.name}
+                </td>
+                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>
+                  ${formatCurrency(row.price)}
+                </td>
+                <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>
+                  ${formatCurrency(row.cost)}
+                </td>
                 <td style={{ padding: "0.75rem 1rem", color: "#EEE" }}>
                   {row.ingredients?.length || 0} item(s)
                 </td>

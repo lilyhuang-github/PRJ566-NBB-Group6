@@ -6,8 +6,7 @@ import { apiFetch } from "@/lib/api";
 import MenuItemTable from "@/components/MenuItemTable";
 import SummaryCard from "@/components/SummaryCard";
 import CategoryModal from "@/components/CategoryModal";
-import { Button, ModalDialog } from "react-bootstrap";
-import { Modal } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import Style from "./menuManage.module.css";
 
 export default function MenuManagementPage() {
@@ -16,6 +15,7 @@ export default function MenuManagementPage() {
 
   const [menuItems, setMenuItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [categoryCounts, setCategoryCounts] = useState({});
@@ -27,8 +27,40 @@ export default function MenuManagementPage() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    loadItems();
-    loadCategories();
+    const fetchData = async () => {
+      try {
+        const [itemRes, catRes] = await Promise.all([
+          apiFetch("/menu-management"),
+          apiFetch("/categories"),
+        ]);
+
+        const categoryMap = {};
+        (catRes.categories || []).forEach((cat) => {
+          categoryMap[cat._id] = cat.name;
+        });
+
+        const rawItems = Array.isArray(itemRes.menuItems)
+          ? itemRes.menuItems
+          : [];
+
+        const itemsWithCategoryNames = rawItems.map((item) => ({
+          ...item,
+          categoryName: categoryMap[item.category] || "Unknown",
+        }));
+
+        setCategories(catRes.categories || []);
+        setMenuItems(itemsWithCategoryNames);
+        calculateStats(itemsWithCategoryNames);
+      } catch (err) {
+        console.error("Failed to load menu items or categories", err);
+        setMenuItems([]);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   async function loadItems() {
@@ -65,7 +97,12 @@ export default function MenuManagementPage() {
   }
 
   const filteredItems = Array.isArray(menuItems)
-    ? menuItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? menuItems.filter((item) => {
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory =
+          selectedCategoryFilter === "all" || item.categoryName === selectedCategoryFilter;
+        return matchesSearch && matchesCategory;
+      })
     : [];
 
   const handleAddCategory = () => {
@@ -82,9 +119,9 @@ export default function MenuManagementPage() {
 
   const handleDeleteCategory = (category) => {
     setSelectedCategory(category);
-    console.log(category);
     setDeleteModalOpen(true);
   };
+
   const handleDeleteCategoryConfirm = async (category) => {
     setDeleteModalOpen(false);
     const res = await apiFetch(`/categories/${category._id}`, {
@@ -92,7 +129,8 @@ export default function MenuManagementPage() {
     });
     loadCategories();
   };
-  const handleDeleteMenuItem = async (menuItem) => {
+
+ const handleDeleteMenuItem = async (menuItem) => {
     setDeleteMenuModalOpen(false);
     const res = await apiFetch(`/menu-management/${menuItem._id}`, {
       method: "DELETE",
@@ -104,7 +142,6 @@ export default function MenuManagementPage() {
       <ManagerOnly>
         <h1>Menu Management</h1>
 
-        {/* Category + Summary Row */}
         <div
           style={{
             display: "flex",
@@ -113,8 +150,14 @@ export default function MenuManagementPage() {
             gap: "2rem",
           }}
         >
-          {/* Category Table */}
-          <div style={{ flex: 1.5, backgroundColor: "#1E1E2F", padding: "1rem", borderRadius: 8 }}>
+          <div
+            style={{
+              flex: 1.5,
+              backgroundColor: "#1E1E2F",
+              padding: "1rem",
+              borderRadius: 8,
+            }}
+          >
             <h3 style={{ color: "#FFF", marginBottom: "0.75rem" }}>Categories</h3>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -172,16 +215,16 @@ export default function MenuManagementPage() {
             </button>
           </div>
 
-          {/* Total Menu Items */}
           <div style={{ flex: 1 }}>
             <SummaryCard label="Total Menu Items" value={menuItems.length} color="#4CAF50" />
           </div>
         </div>
 
-        {/* Add Menu Item Button */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
           <button
-            onClick={() => router.push(`/${restaurantUsername}/dashboard/menu-management/create`)}
+            onClick={() =>
+              router.push(`/${restaurantUsername}/dashboard/menu-management/create`)
+            }
             style={{
               backgroundColor: "#388E3C",
               color: "#FFF",
@@ -197,8 +240,30 @@ export default function MenuManagementPage() {
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+        <div
+          style={{ display: "flex", gap: "1rem", alignItems: "center", marginBottom: "1rem" }}
+        >
+          <label htmlFor="category-filter" style={{ color: "#FFF" }}>Filter:</label>
+          <select
+            id="category-filter"
+            value={selectedCategoryFilter}
+            onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+            style={{
+              padding: "0.5rem 1rem",
+              borderRadius: 4,
+              border: "1px solid #3A3A4A",
+              backgroundColor: "#2A2A3A",
+              color: "#FFF",
+            }}
+          >
+            <option value="all">All</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
           <input
             type="text"
             placeholder="Search menu items by name..."
@@ -219,7 +284,6 @@ export default function MenuManagementPage() {
           items={filteredItems}
           restaurantUsername={restaurantUsername}
           onDelete={(item) => {
-            // console.log("Delete", item);
             setSelectedMenuItem(item);
             setDeleteMenuModalOpen(true);
           }}
@@ -228,20 +292,18 @@ export default function MenuManagementPage() {
           }}
         />
 
-        {/* Category Modal */}
         {modalOpen && (
           <CategoryModal
             open={modalOpen}
             onClose={() => {
               setModalOpen(false);
-              loadCategories(); // refresh list
+              loadCategories();
             }}
             initialName={selectedCategory?.name || ""}
             categoryId={selectedCategory?._id || null}
             isEditing={isEditing}
           />
         )}
-        {/* Delete category modal */}
 
         <Modal
           contentClassName={Style.modalContent}
@@ -252,14 +314,11 @@ export default function MenuManagementPage() {
           <Modal.Header className={Style.modalHeader}>
             <Modal.Title>Delete Category</Modal.Title>
           </Modal.Header>
-
           <Modal.Body className={Style.modalBody}>
             <p>
-              Are you sure you want to delete{" "}
-              {selectedCategory != null ? selectedCategory.name : ""}.
+              Are you sure you want to delete {selectedCategory != null ? selectedCategory.name : ""}.
             </p>
           </Modal.Body>
-
           <Modal.Footer className={Style.modalFooter}>
             <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>
               Close
@@ -270,8 +329,6 @@ export default function MenuManagementPage() {
           </Modal.Footer>
         </Modal>
 
-        {/* Delete Menu Item modal */}
-
         <Modal
           contentClassName={Style.modalContent}
           centered
@@ -281,14 +338,11 @@ export default function MenuManagementPage() {
           <Modal.Header className={Style.modalHeader}>
             <Modal.Title>Delete Menu Item</Modal.Title>
           </Modal.Header>
-
           <Modal.Body className={Style.modalBody}>
             <p>
-              Are you sure you want to delete{" "}
-              {selectedMenuItem != null ? selectedMenuItem.name : ""}.
+              Are you sure you want to delete {selectedMenuItem != null ? selectedMenuItem.name : ""}.
             </p>
           </Modal.Body>
-
           <Modal.Footer className={Style.modalFooter}>
             <Button variant="secondary" onClick={() => setDeleteMenuModalOpen(false)}>
               Close
