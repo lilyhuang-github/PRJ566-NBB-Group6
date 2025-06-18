@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaSearch } from "react-icons/fa"; // Import FaSearch icon
 
 export default function MenuItemTable({ items, onEdit, onDelete }) {
   const [expandedRow, setExpandedRow] = useState(null);
@@ -28,6 +29,28 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
       </button>
     </div>
   );
+
+  // Helper function to get the correct quantity display for an ingredient
+  const getIngredientDisplay = (ingredient) => {
+    // If it's a custom ingredient (which implies track: false)
+    // Note: Based on VariationModal, isCustom:true implies track:false
+    // If unit is provided for the custom ingredient, use quantityUsed + unit
+    if (ingredient.isCustom) { // Keeping this check as it's the primary way to identify custom in modal
+      if (ingredient.unit) {
+        return `${ingredient.quantityUsed || 0} ${ingredient.unit}`;
+      }
+      // Otherwise, use quantityOriginal if available
+      else if (ingredient.quantityOriginal) {
+        return ingredient.quantityOriginal;
+      }
+      // If neither, just return an empty string (name will be enough)
+      return '';
+    } else {
+      // For inventory-linked ingredients (which implies track: true), use quantityUsed and unit
+      // Ensure quantityUsed is a number and unit is a string
+      return `${ingredient.quantityUsed || 0} ${ingredient.unit || ''}`.trim();
+    }
+  };
 
   return (
     <div
@@ -164,16 +187,17 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                   variations.map((v, vi) => (
                     <tr key={`v-${item._id}-${vi}`} style={{ backgroundColor: "#282838" }}>
                       <td colSpan={7} style={{ padding: "1rem", color: "#FFF" }}>
-                        <strong>Variation:</strong> {v.name} — ${v.price} (Cost: ${v.cost})
+                        <strong>Variation:</strong> {v.name} — ${parseFloat(v.price).toFixed(2)} (Cost: ${parseFloat(v.cost).toFixed(2)})
                         <br />
                         <strong>Ingredients:</strong>
                         <ul style={{ margin: "0.5rem 0 0 1.5rem" }}>
                           {v.ingredients?.map((ing, ii) => (
                             <li key={`ing-${ii}`}>
-                              {ing.name} —{" "}
-                              {ing.track
-                                ? `${ing.quantityUsed} ${ing.unit || ""}`.trim()
-                                : `${ing.quantityUsed}`}
+                              {/* Conditionally render magnifying glass for trackable items */}
+                              {ing.track && (
+                                <FaSearch style={{ marginRight: '5px', verticalAlign: 'middle' }} />
+                              )}
+                              {ing.name} — {getIngredientDisplay(ing)}
                             </li>
                           ))}
                         </ul>

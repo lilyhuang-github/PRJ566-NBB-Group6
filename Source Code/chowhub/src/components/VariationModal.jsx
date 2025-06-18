@@ -8,37 +8,32 @@ import {
   InputGroup,
   FormControl,
 } from "react-bootstrap";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave }) => {
   const [localVariation, setLocalVariation] = useState(variation);
 
   useEffect(() => {
-    // When the `variation` prop changes (e.g., when editing a different variation
-    // or when adding a new one), update the local state.
-    // Also, ensure ingredients array is always present.
     setLocalVariation({
       ...variation,
       ingredients: Array.isArray(variation?.ingredients) ? variation.ingredients.map(ing => ({
         ...ing,
-        // Ensure isCustom is always a boolean and defaults to false if not present
         isCustom: typeof ing.isCustom === 'boolean' ? ing.isCustom : false,
-        // Ensure track is always a boolean and defaults to true if has ingredientId, false otherwise
-        track: typeof ing.track === 'boolean' ? ing.track : (!!ing.ingredientId),
-        // Ensure quantityUsed is a number
+        // Refined logic for 'track' initialization:
+        // Prioritize existing boolean 'track' value from DB.
+        // If not a boolean, default based on whether it's a linked DB ingredient.
+        track: typeof ing.track === 'boolean'
+               ? ing.track
+               : (!!ing.ingredientId && !ing.isCustom && ing.name !== ''), // Default to true if linked and not custom and has a name
         quantityUsed: parseFloat(ing.quantityUsed) || 0,
-        // Ensure quantityOriginal is a string
         quantityOriginal: ing.quantityOriginal || '',
-        // Ensure unit is a string
         unit: ing.unit || '',
-        // Ensure name is a string
         name: ing.name || '',
       })) : []
     });
   }, [variation]);
 
-  // Handle changes to main variation fields (name, price, cost)
   const handleVariationChange = (e) => {
     const { name, value } = e.target;
     setLocalVariation((prev) => ({
@@ -47,7 +42,6 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
     }));
   };
 
-  // Add a new ingredient row
   const addIngredient = () => {
     setLocalVariation((prev) => ({
       ...prev,
@@ -57,70 +51,57 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
           name: "",
           ingredientId: null,
           quantityUsed: 0,
-          track: false, // Default to not tracked for new ingredients (user can enable)
-          isCustom: true, // New ingredients default to custom
+          track: false, 
+          isCustom: true, 
           unit: "",
-          isChecked: false,
+          isChecked: false, 
           quantityOriginal: "",
         },
       ],
     }));
   };
 
-  // Update a specific ingredient's field
   const updateIngredient = (index, field, value) => {
     const updatedIngredients = [...(localVariation.ingredients || [])];
     if (!updatedIngredients[index]) return;
 
-    const ing = { ...updatedIngredients[index] }; // Create a copy of the ingredient
+    const ing = { ...updatedIngredients[index] };
 
     if (field === "isCustom") {
-      ing.isCustom = value; // `value` here is the boolean from the checkbox
-      if (ing.isCustom) {
-        // If switching to CUSTOM
-        ing.ingredientId = null; // Clear linked ingredient ID
+      ing.isCustom = value;
+      if (ing.isCustom) { // Switched to Custom Ingredient
+        ing.ingredientId = null; // Clear DB link
         ing.track = false; // Custom ingredients are not tracked
-        // IMPORTANT: Preserve current `name` and `unit` so user can edit them as custom
-        // If they were previously linked, their name/unit will be from the DB ingredient
-        // If they were already custom, their name/unit will be their custom values
-      } else {
-        // If switching OFF CUSTOM (to potentially link to inventory)
-        ing.ingredientId = null; // Clear existing ID (force user to re-select from dropdown)
-        ing.name = ""; // Clear name, will be populated from selected DB ingredient
-        ing.unit = ""; // Clear unit, will be populated from selected DB ingredient
-        ing.track = true; // Default to tracked when switching off custom, user can uncheck
+      } else { // Switched off Custom Ingredient (intending to link to inventory)
+        ing.track = true; // Assume user intends to link to a trackable item
       }
     } else if (field === "ingredientId") {
-      // Logic for when an item is selected from the dropdown
       const matched = ingredientOptions.find((opt) => opt._id?.toString() === value?.toString());
 
       if (matched) {
         ing.ingredientId = matched._id?.toString();
         ing.name = matched.name;
         ing.unit = matched.unit;
-        ing.track = true; // Default to tracking if an inventory item is selected
-        ing.isCustom = false; // Cannot be custom if linked to an inventory item
-      } else if (value === "") {
-        // Handle "Select Ingredient" option
+        ing.track = true; // Always track if selected from inventory
+        ing.isCustom = false; // Always not custom if selected from inventory
+      } else if (value === "") { // User cleared the selection
         ing.ingredientId = null;
         ing.name = "";
         ing.unit = "";
-        ing.track = false;
+        ing.track = false; // No longer linked, so not tracked
         ing.isCustom = false; 
       } else {
         toast.error("Invalid ingredient selected from DB.");
-        return; 
+        return;
       }
     } else {
       ing[field] = value;
     }
 
-    // Apply the updated ingredient back to the array
     updatedIngredients[index] = ing;
     setLocalVariation((prev) => ({ ...prev, ingredients: updatedIngredients }));
   };
 
-  // Remove an ingredient row
   const removeIngredient = (index) => {
     setLocalVariation((prev) => ({
       ...prev,
@@ -128,9 +109,7 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
     }));
   };
 
-  // Handle modal save button click
   const handleSave = () => {
-    
     if (!localVariation.name.trim()) {
       toast.error("Variation name is required.");
       return;
@@ -143,7 +122,21 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
     onSave(localVariation);
   };
 
-  
+  // Function to format the quantity display based on your logic
+  const getIngredientQuantityDisplay = (ing) => {
+    if (ing.isCustom) {
+      if (ing.unit) {
+        return `${ing.quantityUsed || 0} ${ing.unit}`;
+      } else if (ing.quantityOriginal) {
+        return ing.quantityOriginal;
+      }
+      return ''; // Show nothing if no unit or quantityOriginal for custom
+    } else {
+      // For inventory-linked ingredients, always use quantityUsed and unit
+      return `${ing.quantityUsed || 0} ${ing.unit || ''}`;
+    }
+  };
+
   return (
     <Modal show={show} onHide={onClose} size="lg" centered>
       <Modal.Header closeButton>
@@ -198,7 +191,6 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
                 <Col md={5}>
                   <Form.Group>
                     <Form.Label>Ingredient Name</Form.Label>
-                    {}
                     {ing.isCustom ? (
                       <Form.Control
                         type="text"
@@ -208,18 +200,24 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
                         required
                       />
                     ) : (
-                      <Form.Select
-                        value={ing.ingredientId?.toString() || ""} 
-                        onChange={(e) => updateIngredient(index, "ingredientId", e.target.value)}
-                        required
-                      >
-                        <option value="">-- Select Inventory Ingredient --</option>
-                        {ingredientOptions.map((opt) => (
-                          <option key={opt._id?.toString()} value={opt._id?.toString()}>
-                            {opt.name} ({opt.unit})
-                          </option>
-                        ))}
-                      </Form.Select>
+                      <InputGroup> {/* Use InputGroup for icon */}
+                        <Form.Select
+                          value={ing.ingredientId?.toString() || ""}
+                          onChange={(e) => updateIngredient(index, "ingredientId", e.target.value)}
+                          required
+                        >
+                          <option value="">-- Select Inventory Ingredient --</option>
+                          {ingredientOptions.map((opt) => (
+                            <option key={opt._id?.toString()} value={opt._id?.toString()}>
+                              {opt.name} ({opt.unit})
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {}
+                        <InputGroup.Text>
+                          <FaSearch />
+                        </InputGroup.Text>
+                      </InputGroup>
                     )}
                   </Form.Group>
                 </Col>
@@ -257,7 +255,7 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
                   </Form.Group>
                 </Col>
                 <Col md={3} className="d-flex align-items-end justify-content-end">
-                  <Form.Group className="mb-0 me-2"> {}
+                  <Form.Group className="mb-0 me-2">
                     <Form.Check
                       type="checkbox"
                       label="Custom"
@@ -286,10 +284,19 @@ const VariationModal = ({ show, onClose, variation, ingredientOptions, onSave })
                   </Button>
                 </Col>
               </Row>
+              {/* Display area for the formatted quantity/unit for clarity within the modal */}
+              <Row className="mt-2">
+                <Col>
+                  <small className="text-muted">
+                    Display: {getIngredientQuantityDisplay(ing)}
+                  </small>
+                </Col>
+              </Row>
             </div>
           ))}
           <Button variant="secondary" onClick={addIngredient} className="mt-3">
             <FaPlus className="me-2" /> Add Ingredient
+          
           </Button>
         </Form>
       </Modal.Body>
