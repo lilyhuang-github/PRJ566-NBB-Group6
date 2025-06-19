@@ -18,13 +18,13 @@ export default function EditMenuItem() {
     name: "",
     description: "",
     category: "",
-    image: "", 
-    imageFile: null, 
+    image: "",
+    imageFile: null,
     isInventoryControlled: false,
   });
   const [variations, setVariations] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [ingredientOptions, setIngredientOptions] = useState([]); 
+  const [ingredientOptions, setIngredientOptions] = useState([]);
   const [showVariationModal, setShowVariationModal] = useState(false);
   const [activeVariation, setActiveVariation] = useState(null);
 
@@ -37,7 +37,7 @@ export default function EditMenuItem() {
       console.error("Failed to fetch categories:", err);
       toast.error("Failed to load categories.");
     }
-  }, []); 
+  }, []);
   useEffect(() => {
     if (!router.isReady || !menuItemId) return;
 
@@ -58,7 +58,7 @@ export default function EditMenuItem() {
           description: item.description || "",
           category: item.category || "",
           image: item.image || "",
-          imageFile: null, 
+          imageFile: null,
           isInventoryControlled: !!item.isInventoryControlled,
         });
 
@@ -67,15 +67,14 @@ export default function EditMenuItem() {
         // Fetch Ingredients for dropdowns (inventory ingredients)
         const ingredientsRes = await apiFetch("/ingredients?page=1&limit=1000");
         setIngredientOptions(
-          (ingredientsRes.ingredients || []).map(ing => ({
+          (ingredientsRes.ingredients || []).map((ing) => ({
             ...ing,
-            _id: ing._id 
-          }))
+            _id: ing._id,
+          })),
         );
 
         // Fetch Categories
         fetchCategories();
-
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setWarning(err.message || "Failed to load menu item or ingredients.");
@@ -85,14 +84,14 @@ export default function EditMenuItem() {
     }
 
     fetchData();
-  }, [router.isReady, menuItemId, fetchCategories]); 
+  }, [router.isReady, menuItemId, fetchCategories]);
 
   // Handles changes to the main menu item form fields (name, description, category, image, isInventoryControlled)
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     setFormData((f) => ({
       ...f,
-      [name]: type === "checkbox" ? checked : (type === "file" ? files[0] : value),
+      [name]: type === "checkbox" ? checked : type === "file" ? files[0] : value,
     }));
   };
 
@@ -113,9 +112,9 @@ export default function EditMenuItem() {
         ingredientId: i.ingredientId || null,
         name: i.name,
         quantityUsed: parseFloat(i.quantityUsed) || 0,
-        track: !!i.track, 
-        unit: i.unit || "", 
-        isCustom: !!i.isCustom, 
+        track: !!i.track,
+        unit: i.unit || "",
+        isCustom: !!i.isCustom,
         isChecked: !!i.isChecked,
         quantityOriginal: i.quantityOriginal || "",
       })),
@@ -125,7 +124,6 @@ export default function EditMenuItem() {
     formPayload.append("name", formData.name);
     formPayload.append("description", formData.description);
     formPayload.append("category", formData.category);
-    formPayload.append("isInventoryControlled", formData.isInventoryControlled);
     formPayload.append("variations", JSON.stringify(cleanedVariations));
 
     if (formData.imageFile) {
@@ -135,16 +133,13 @@ export default function EditMenuItem() {
     }
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/menu-management/${menuItemId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formPayload,
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/menu-management/${menuItemId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formPayload,
+      });
 
       const result = await res.json();
       if (!res.ok) {
@@ -161,7 +156,9 @@ export default function EditMenuItem() {
 
   // Handler for deleting a variation from the table
   const handleVariationDelete = (variationToDelete) => {
-    const confirmDelete = confirm(`Are you sure you want to delete variation "${variationToDelete.name}"?`);
+    const confirmDelete = confirm(
+      `Are you sure you want to delete variation "${variationToDelete.name}"?`,
+    );
     if (confirmDelete) {
       setVariations((prev) => prev.filter((v) => v.name !== variationToDelete.name));
       toast.info(`Variation "${variationToDelete.name}" removed.`);
@@ -191,7 +188,7 @@ export default function EditMenuItem() {
     const nameExists = variations.some(
       (v) =>
         v.name.toLowerCase() === updatedVariation.name.toLowerCase() &&
-        activeVariation?.name.toLowerCase() !== updatedVariation.name.toLowerCase()
+        activeVariation?.name.toLowerCase() !== updatedVariation.name.toLowerCase(),
     );
 
     if (nameExists) {
@@ -202,7 +199,7 @@ export default function EditMenuItem() {
     setVariations((prev) => {
       // Find index of existing variation to update, or -1 if new
       const existingIndex = prev.findIndex(
-        (v) => activeVariation && v.name === activeVariation.name 
+        (v) => activeVariation && v.name === activeVariation.name,
       );
 
       if (existingIndex > -1) {
@@ -216,11 +213,10 @@ export default function EditMenuItem() {
       }
     });
 
-    setShowVariationModal(false); 
+    setShowVariationModal(false);
     setActiveVariation(null);
   };
 
-  
   if (loading) {
     return (
       <DashboardLayout>
@@ -232,7 +228,6 @@ export default function EditMenuItem() {
       </DashboardLayout>
     );
   }
-
 
   if (warning && !loading && !formData.name) {
     return (
@@ -280,15 +275,12 @@ export default function EditMenuItem() {
 
           <Form.Group className="mb-3" controlId="formCategory">
             <Form.Label>Category</Form.Label>
-            <Form.Select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            >
+            <Form.Select name="category" value={formData.category} onChange={handleChange} required>
               <option value="">Select a category</option>
               {categories.map((cat) => (
-                <option key={cat._id?.toString()} value={cat._id?.toString()}> {/* Ensure _id is a string */}
+                <option key={cat._id?.toString()} value={cat._id?.toString()}>
+                  {" "}
+                  {/* Ensure _id is a string */}
                   {cat.name}
                 </option>
               ))}
@@ -302,34 +294,15 @@ export default function EditMenuItem() {
                 alt="Current"
                 style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 10 }}
               />
-              <Form.Text style={{ color: "#ccc", display: "block" }}>
-                Existing image
-              </Form.Text>
+              <Form.Text style={{ color: "#ccc", display: "block" }}>Existing image</Form.Text>
             </div>
           )}
 
           <Form.Group className="mb-3" controlId="formImageUpload">
             <Form.Label>Change Image</Form.Label>
-            <Form.Control
-              type="file"
-              name="imageFile" 
-              onChange={handleChange}
-              accept="image/*" 
-            />
-            <Form.Text style={{ color: "#ccc" }}>
-              Upload to replace existing image
-            </Form.Text>
+            <Form.Control type="file" name="imageFile" onChange={handleChange} accept="image/*" />
+            <Form.Text style={{ color: "#ccc" }}>Upload to replace existing image</Form.Text>
           </Form.Group>
-
-          <Form.Check
-            type="switch"
-            id="inventory-switch"
-            label="Inventory Controlled?"
-            checked={!!formData.isInventoryControlled} 
-            onChange={handleChange} 
-            name="isInventoryControlled" 
-            className="mb-3"
-          />
 
           {warning && <p className="text-danger mt-2">{warning}</p>}
 
@@ -347,18 +320,18 @@ export default function EditMenuItem() {
         <VariationTable
           variations={variations}
           onEdit={(variation) => {
-            setActiveVariation(variation); 
-            setShowVariationModal(true); 
+            setActiveVariation(variation);
+            setShowVariationModal(true);
           }}
           onDelete={handleVariationDelete}
         />
 
-        {showVariationModal && ( 
+        {showVariationModal && (
           <VariationModal
             show={showVariationModal}
             onClose={() => {
               setShowVariationModal(false);
-              setActiveVariation(null); 
+              setActiveVariation(null);
             }}
             variation={activeVariation}
             ingredientOptions={ingredientOptions}

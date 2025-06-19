@@ -17,13 +17,23 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
     <div style={{ display: "flex", gap: "0.5rem", padding: "0 0.5rem" }}>
       <button
         onClick={() => onEdit(item)}
-        style={{ background: "none", border: "none", cursor: "pointer", color: "#FFF" }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#FFF",
+        }}
       >
         ✏️
       </button>
       <button
         onClick={() => onDelete(item)}
-        style={{ background: "none", border: "none", cursor: "pointer", color: "#FFF" }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#FFF",
+        }}
       >
         🗑️
       </button>
@@ -35,7 +45,12 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
     // If it's a custom ingredient (which implies track: false)
     // Note: Based on VariationModal, isCustom:true implies track:false
     // If unit is provided for the custom ingredient, use quantityUsed + unit
-    if (ingredient.isCustom) { // Keeping this check as it's the primary way to identify custom in modal
+    if (ingredient.track) {
+      // Keeping this check as it's the primary way to identify custom in modal
+      return `${ingredient.quantityUsed || 0} ${ingredient.unit || ""}`.trim();
+    } else {
+      // For inventory-linked ingredients (which implies track: true), use quantityUsed and unit
+      // Ensure quantityUsed is a number and unit is a string
       if (ingredient.unit) {
         return `${ingredient.quantityUsed || 0} ${ingredient.unit}`;
       }
@@ -44,11 +59,7 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
         return ingredient.quantityOriginal;
       }
       // If neither, just return an empty string (name will be enough)
-      return '';
-    } else {
-      // For inventory-linked ingredients (which implies track: true), use quantityUsed and unit
-      // Ensure quantityUsed is a number and unit is a string
-      return `${ingredient.quantityUsed || 0} ${ingredient.unit || ''}`.trim();
+      return "";
     }
   };
 
@@ -94,30 +105,35 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
             const { variations = [] } = item;
 
             const isCritical = variations.some((v) =>
-              v.ingredients?.some((ing) => ing.track && ing.quantityUsed <= ing.threshold)
+              v.ingredients?.some((ing) => ing.track && ing.quantityUsed <= ing.threshold),
             );
 
-            const isLow = !isCritical && variations.some((v) =>
-              v.ingredients?.some((ing) =>
-                ing.track && ing.quantityUsed <= ing.threshold * 1.1 && ing.quantityUsed > ing.threshold
-              )
-            );
+            const isLow =
+              !isCritical &&
+              variations.some((v) =>
+                v.ingredients?.some(
+                  (ing) =>
+                    ing.track &&
+                    ing.quantityUsed <= ing.threshold * 1.1 &&
+                    ing.quantityUsed > ing.threshold,
+                ),
+              );
 
             const backgroundColor = isCritical
               ? "rgba(229, 57, 53, 0.2)"
               : isLow
-              ? "rgba(255, 165, 0, 0.2)"
-              : isEven
-              ? "transparent"
-              : "rgba(255,255,255,0.03)";
+                ? "rgba(255, 165, 0, 0.2)"
+                : isEven
+                  ? "transparent"
+                  : "rgba(255,255,255,0.03)";
 
             const prices = variations.map((v) => parseFloat(v.price)).filter((n) => !isNaN(n));
             const priceRange =
               prices.length === 0
                 ? "-"
                 : prices.length === 1
-                ? `$${prices[0].toFixed(2)}`
-                : `$${Math.min(...prices).toFixed(2)} - $${Math.max(...prices).toFixed(2)}`;
+                  ? `$${prices[0].toFixed(2)}`
+                  : `$${Math.min(...prices).toFixed(2)} - $${Math.max(...prices).toFixed(2)}`;
 
             const isExpanded = expandedRow === item._id;
 
@@ -132,11 +148,15 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)")
                   }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = backgroundColor)
-                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = backgroundColor)}
                 >
-                  <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
+                  <td
+                    style={{
+                      padding: "0.5rem 1rem",
+                      color: "#EEE",
+                      fontSize: "0.95rem",
+                    }}
+                  >
                     {item.name}
                   </td>
                   <td style={{ padding: "0.5rem 1rem" }}>
@@ -148,13 +168,31 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                       />
                     ) : null}
                   </td>
-                  <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
+                  <td
+                    style={{
+                      padding: "0.5rem 1rem",
+                      color: "#EEE",
+                      fontSize: "0.95rem",
+                    }}
+                  >
                     {item.categoryName}
                   </td>
-                  <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
+                  <td
+                    style={{
+                      padding: "0.5rem 1rem",
+                      color: "#EEE",
+                      fontSize: "0.95rem",
+                    }}
+                  >
                     {priceRange}
                   </td>
-                  <td style={{ padding: "0.5rem 1rem", color: "#EEE", fontSize: "0.95rem" }}>
+                  <td
+                    style={{
+                      padding: "0.5rem 1rem",
+                      color: "#EEE",
+                      fontSize: "0.95rem",
+                    }}
+                  >
                     {item.isInventoryControlled ? "Yes" : "No"}
                   </td>
                   <td style={{ padding: "0.5rem 1rem" }}>
@@ -187,16 +225,16 @@ export default function MenuItemTable({ items, onEdit, onDelete }) {
                   variations.map((v, vi) => (
                     <tr key={`v-${item._id}-${vi}`} style={{ backgroundColor: "#282838" }}>
                       <td colSpan={7} style={{ padding: "1rem", color: "#FFF" }}>
-                        <strong>Variation:</strong> {v.name} — ${parseFloat(v.price).toFixed(2)} (Cost: ${parseFloat(v.cost).toFixed(2)})
+                        <strong>Variation:</strong> {v.name} — $
+                        {parseFloat(v.price || 0).toFixed(2)} (Cost: $
+                        {parseFloat(v.cost || 0).toFixed(2)})
                         <br />
                         <strong>Ingredients:</strong>
                         <ul style={{ margin: "0.5rem 0 0 1.5rem" }}>
                           {v.ingredients?.map((ing, ii) => (
                             <li key={`ing-${ii}`}>
                               {/* Conditionally render magnifying glass for trackable items */}
-                              {ing.track && (
-                                <FaSearch style={{ marginRight: '5px', verticalAlign: 'middle' }} />
-                              )}
+                              {ing.track && <>🔍</>}
                               {ing.name} — {getIngredientDisplay(ing)}
                             </li>
                           ))}
