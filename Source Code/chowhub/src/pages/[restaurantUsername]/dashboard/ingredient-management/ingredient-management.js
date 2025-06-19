@@ -37,6 +37,7 @@ export default function IngredientManagementPage() {
       const {
         ingredients: list,
         total,
+        totalUnfiltered,
         totalLowStock,
         totalCriticalStock,
       } = await apiFetch(`/ingredients?${params}`);
@@ -44,7 +45,7 @@ export default function IngredientManagementPage() {
       setIngredients(list);
       setTotalItems(total);
       setTotals({
-        totalIngredients: total,
+        totalIngredients: totalUnfiltered,
         lowStock: totalLowStock,
         criticalStock: totalCriticalStock,
       });

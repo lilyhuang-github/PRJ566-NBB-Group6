@@ -134,7 +134,7 @@ export default function IngredientTable({ ingredients, onEdit, onDelete }) {
                   style={{
                     padding: "0.5rem 0.5rem",
                     textAlign: "center",
-                    width: "100px", // Fixed width for actions column
+                    width: "100px",
                   }}
                 >
                   {renderActions(row, index)}
