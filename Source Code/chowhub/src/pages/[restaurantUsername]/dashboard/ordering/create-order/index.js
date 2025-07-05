@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
-import { Button, Col, Container, Image, Modal, Row, Spinner } from "react-bootstrap";
+import { Button, Col, Container, Form, Image, Modal, Row, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Style from "./createOrder.module.css";
 
@@ -15,6 +15,7 @@ export default function CreateOrder() {
   const [detailViewMenuItem, setDetailViewMenuItem] = useState(null);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [quantiy, setQuantity] = useState(1);
+  const [comment, setComment] = useState("");
   const taxRate = 0.13;
   const subtotal = cartItems.reduce((sum, entry) => {
     const variant = entry.item.variations.find((v) => v._id === entry.variant);
@@ -100,6 +101,7 @@ export default function CreateOrder() {
           subtotal,
           tax,
           total,
+          comment,
         }),
       });
       if (res.error) {
@@ -109,6 +111,7 @@ export default function CreateOrder() {
       toast.success(`✅ Order has been successfully placed`);
       //clear data
       setCartItems([]);
+      setComment("");
       console.log("Order submitted successfully:", res);
     } catch (err) {
       console.log(err);
@@ -216,12 +219,14 @@ export default function CreateOrder() {
                     <Button
                       size="lg"
                       key={cat._id}
+                      className="w-100 h-100"
                       variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
                       onClick={() => setItemsToCategory(cat._id)}
                       style={{
                         background: "#2A2A3A",
                         borderColor: "#2A2A3A",
                         color: "#CCC",
+                        flex: "1 1 100px",
                       }}
                     >
                       {cat.name}
@@ -237,11 +242,13 @@ export default function CreateOrder() {
                   {selectedMenuItems.map((cat) => (
                     <Button
                       size="lg"
+                      className="w-100 h-100"
                       key={cat._id}
                       style={{
                         background: "#2A2A3A",
                         borderColor: "#2A2A3A",
                         color: "#CCC",
+                        flex: "1 1 100px",
                       }}
                       variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
                       onClick={() => viewSpecificItem(cat._id)}
@@ -301,6 +308,12 @@ export default function CreateOrder() {
                   <h5>Tax (13%): ${tax.toFixed(2)}</h5>
                   <h5>Total: ${total.toFixed(2)}</h5>
                 </b>
+                <Form.Control
+                  onChange={(e) => setComment(e.target.value)}
+                  type="text"
+                  value={comment}
+                  placeholder="Comments"
+                />
                 <Button
                   variant="success"
                   onClick={() => submitOrder(cartItems)}
