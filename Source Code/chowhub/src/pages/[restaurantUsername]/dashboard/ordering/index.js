@@ -1,17 +1,31 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { useRouter } from "next/router";
-import { Button } from "react-bootstrap";
+import { Button, Col, Container, Row } from "react-bootstrap";
 
 export default function OrderingSwitchMenu() {
   const router = useRouter();
   const { restaurantUsername } = router.query;
   return (
     <DashboardLayout>
-      Temp
-      <Button onClick={() => router.push(`/${restaurantUsername}/dashboard/ordering/create-order`)}>
-        Create Order
-      </Button>
-      <Button>Order History</Button>
+      <Container fluid>
+        <Row style={{ height: "50vh" }}>
+          <Col>
+            <Button
+              variant="dark"
+              className="w-100 h-100"
+              style={{ "font-size": "xxx-large" }}
+              onClick={() => router.push(`/${restaurantUsername}/dashboard/ordering/create-order`)}
+            >
+              Create Order
+            </Button>
+          </Col>
+          <Col>
+            <Button style={{ "font-size": "xxx-large" }} variant="dark" className="w-100 h-100">
+              Order History
+            </Button>
+          </Col>
+        </Row>
+      </Container>
     </DashboardLayout>
   );
 }

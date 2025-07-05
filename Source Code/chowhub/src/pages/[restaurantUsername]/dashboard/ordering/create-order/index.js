@@ -219,12 +219,14 @@ export default function CreateOrder() {
                     <Button
                       size="lg"
                       key={cat._id}
+                      className="w-100 h-100"
                       variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
                       onClick={() => setItemsToCategory(cat._id)}
                       style={{
                         background: "#2A2A3A",
                         borderColor: "#2A2A3A",
                         color: "#CCC",
+                        flex: "1 1 100px",
                       }}
                     >
                       {cat.name}
@@ -240,11 +242,13 @@ export default function CreateOrder() {
                   {selectedMenuItems.map((cat) => (
                     <Button
                       size="lg"
+                      className="w-100 h-100"
                       key={cat._id}
                       style={{
                         background: "#2A2A3A",
                         borderColor: "#2A2A3A",
                         color: "#CCC",
+                        flex: "1 1 100px",
                       }}
                       variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
                       onClick={() => viewSpecificItem(cat._id)}
