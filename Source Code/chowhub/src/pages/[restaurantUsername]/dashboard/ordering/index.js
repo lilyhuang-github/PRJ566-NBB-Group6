@@ -20,7 +20,12 @@ export default function OrderingSwitchMenu() {
             </Button>
           </Col>
           <Col>
-            <Button style={{ "font-size": "xxx-large" }} variant="dark" className="w-100 h-100">
+            <Button
+              variant="dark"
+              className="w-100 h-100"
+              style={{ "font-size": "xxx-large" }}
+              onClick={() => router.push(`/${restaurantUsername}/dashboard/ordering/history`)}
+            >
               Order History
             </Button>
           </Col>
