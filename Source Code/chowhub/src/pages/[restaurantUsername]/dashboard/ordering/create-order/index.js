@@ -228,8 +228,8 @@ export default function CreateOrder() {
           {/* Menu */}
           <Row>
             <Col>
-              <h1>{!selectedMenuItems ? "Categories" : "Menu Items"}</h1>
-              <div style={{ minHeight: "72px" }}>
+              <h1>Menu</h1>
+              {/* <div style={{ minHeight: "72px" }}>
                 {choosenCategory != null && (
                   <>
                     <Button
@@ -246,8 +246,8 @@ export default function CreateOrder() {
                     <br />
                     <br />
                   </>
-                )}
-              </div>
+                )} */}
+              {/* </div> */}
               {/* category item display */}
 
               {loading ? (
@@ -257,9 +257,9 @@ export default function CreateOrder() {
                   {categories.map((cat) => (
                     <div key={cat._id}>
                       <b>
-                        <h4 className="text-center" style={{ color: "#CCC" }}>
+                        <h2 className="text-center" style={{ color: "#CCC" }}>
                           {cat.name}
-                        </h4>
+                        </h2>
                       </b>
                       <div className="d-flex flex-wrap gap-2">
                         {groupedMenuItems[cat._id]?.map((item) => (
