@@ -17,6 +17,7 @@ export default function CreateOrder() {
   const [quantiy, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
   const [groupedMenuItems, setGroupedMenuItems] = useState({});
+  const [ingredients, setIngredients] = useState({});
   const taxRate = 0.13;
   const subtotal = cartItems.reduce((sum, entry) => {
     const variant = entry.item.variations.find((v) => v._id === entry.variant);
@@ -31,15 +32,19 @@ export default function CreateOrder() {
         method: "GET",
       });
       //   const data = await res.json();
-      console.log(resMenu.menuItems);
+      resMenu.menuItems.forEach((item) => {
+        item.isDisabled = item.variations.every((v) => v.isAvailable === false);
+      });
+      console.log("MENU ITEMS: ", resMenu.menuItems);
       setMenuitems(resMenu.menuItems);
       const resCat = await apiFetch("/categories", { method: "GET" });
-      console.log(resCat.categories);
+      console.log("CATEGORIES:", resCat.categories);
       setCatgories(resCat.categories);
       const grouped = resCat.categories.reduce((acc, category) => {
         acc[category._id] = resMenu.menuItems.filter((item) => item.category === category._id);
         return acc;
       }, {});
+
       setGroupedMenuItems(grouped);
       setLoading(false);
     }
@@ -188,10 +193,23 @@ export default function CreateOrder() {
                     id={`variant-${variant._id}`}
                     value={variant._id}
                     checked={selectedVariantId === variant._id}
+                    disabled={variant.isAvailable === false}
                     onChange={() => setSelectedVariantId(variant._id)}
                   />
                   <label className="form-check-label" htmlFor={`variant-${variant._id}`}>
                     {variant.name} — ${variant.price}
+                    {!variant.isAvailable && (
+                      <span
+                        style={{
+                          color: "#f88",
+                          marginLeft: "0.5rem",
+                          fontWeight: "normal",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        (Out of stock)
+                      </span>
+                    )}
                   </label>
                   <div style={{ fontSize: "0.85rem", color: "#AAA", marginLeft: "1.8rem" }}>
                     Ingredients:{" "}
@@ -265,15 +283,15 @@ export default function CreateOrder() {
                         {groupedMenuItems[cat._id]?.map((item) => (
                           <div
                             key={item._id}
-                            onClick={() => viewSpecificItem(item._id)}
+                            onClick={() => !item.isDisabled && viewSpecificItem(item._id)}
                             style={{
-                              background: "#2A2A3A",
+                              background: item.isDisabled ? "#444" : "#2A2A3A",
                               border: "1px solid #444",
-                              color: "#CCC",
+                              color: item.isDisabled ? "#888" : "#CCC",
                               flex: "1 1 250px",
                               padding: "1rem",
                               borderRadius: "0.5rem",
-                              cursor: "pointer",
+                              cursor: item.isDisabled ? "not-allowed" : "pointer",
                               textAlign: "left",
                               display: "flex",
                               flexDirection: "column",
@@ -282,6 +300,8 @@ export default function CreateOrder() {
                               width: "33%",
                               minWidth: "100px",
                               maxWidth: "300px",
+                              opacity: item.isDisabled ? 0.5 : 1,
+                              pointerEvents: item.isDisabled ? "none" : "auto",
                             }}
                           >
                             <img
@@ -295,7 +315,21 @@ export default function CreateOrder() {
                                 objectFit: "cover",
                               }}
                             />
-                            <strong>{item.name}</strong>
+                            <strong>
+                              {item.name}
+                              {item.isDisabled && (
+                                <span
+                                  style={{
+                                    color: "#f88",
+                                    marginLeft: "0.5rem",
+                                    fontWeight: "normal",
+                                    fontSize: "0.9rem",
+                                  }}
+                                >
+                                  (Out of stock)
+                                </span>
+                              )}
+                            </strong>
                             <small style={{ color: "#AAA" }}>
                               Ingredients:{" "}
                               {item.variations[0]?.ingredients &&
