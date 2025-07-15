@@ -16,6 +16,7 @@ export default function CreateOrder() {
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [quantiy, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
+  const [groupedMenuItems, setGroupedMenuItems] = useState({});
   const taxRate = 0.13;
   const subtotal = cartItems.reduce((sum, entry) => {
     const variant = entry.item.variations.find((v) => v._id === entry.variant);
@@ -35,6 +36,11 @@ export default function CreateOrder() {
       const resCat = await apiFetch("/categories", { method: "GET" });
       console.log(resCat.categories);
       setCatgories(resCat.categories);
+      const grouped = resCat.categories.reduce((acc, category) => {
+        acc[category._id] = resMenu.menuItems.filter((item) => item.category === category._id);
+        return acc;
+      }, {});
+      setGroupedMenuItems(grouped);
       setLoading(false);
     }
     getMenuItems();
@@ -55,18 +61,43 @@ export default function CreateOrder() {
   }
 
   function viewSpecificItem(itemId) {
-    const item = selectedMenuItems.find((item) => item._id === itemId);
+    const item = menuItems.find((item) => item._id === itemId);
+    // const item = selectedMenuItems.find((item) => item._id === itemId);
     setDetailViewMenuItem(item);
     console.log(item);
   }
   function addItemToCart() {
-    setCartItems((arr) => [
-      ...arr,
-      { item: detailViewMenuItem, variant: selectedVariantId, quantity: quantiy },
-    ]);
+    setCartItems((arr) => {
+      // Add new item to array
+      const newCart = [
+        ...arr,
+        { item: detailViewMenuItem, variant: selectedVariantId, quantity: quantiy },
+      ];
+
+      // Merge duplicates
+      return mergeExistingItems(newCart);
+    });
+
     console.log(cartItems);
     setDetailViewMenuItem(null);
     setQuantity(1);
+  }
+  function mergeExistingItems(items) {
+    const merged = [];
+
+    for (const entry of items) {
+      const existingIndex = merged.findIndex(
+        (e) => e.item._id === entry.item._id && e.variant === entry.variant,
+      );
+
+      if (existingIndex !== -1) {
+        merged[existingIndex].quantity += entry.quantity;
+      } else {
+        merged.push({ ...entry });
+      }
+    }
+
+    return merged;
   }
   function removeItemFromCart(index) {
     setCartItems((prev) => prev.filter((_, i) => i !== index));
@@ -98,9 +129,9 @@ export default function CreateOrder() {
         },
         body: JSON.stringify({
           orderLineItems,
-          subtotal,
-          tax,
-          total,
+          subtotal: subtotal.toFixed(2),
+          tax: tax.toFixed(2),
+          total: total.toFixed(2),
           comment,
         }),
       });
@@ -162,6 +193,12 @@ export default function CreateOrder() {
                   <label className="form-check-label" htmlFor={`variant-${variant._id}`}>
                     {variant.name} — ${variant.price}
                   </label>
+                  <div style={{ fontSize: "0.85rem", color: "#AAA", marginLeft: "1.8rem" }}>
+                    Ingredients:{" "}
+                    {variant.ingredients && variant.ingredients.length > 0
+                      ? variant.ingredients.map((ing) => ing.name).join(", ")
+                      : "No ingredients listed"}
+                  </div>
                 </div>
               ))}
 
@@ -175,6 +212,7 @@ export default function CreateOrder() {
               </Button>
               <Button
                 variant="primary"
+                disabled={!selectedVariantId}
                 onClick={() => {
                   addItemToCart();
                 }}
@@ -190,8 +228,8 @@ export default function CreateOrder() {
           {/* Menu */}
           <Row>
             <Col>
-              <h1>{!selectedMenuItems ? "Categories" : "Menu Items"}</h1>
-              <div style={{ minHeight: "72px" }}>
+              <h1>Menu</h1>
+              {/* <div style={{ minHeight: "72px" }}>
                 {choosenCategory != null && (
                   <>
                     <Button
@@ -208,56 +246,78 @@ export default function CreateOrder() {
                     <br />
                     <br />
                   </>
-                )}
-              </div>
+                )} */}
+              {/* </div> */}
               {/* category item display */}
+
               {loading ? (
                 <Spinner animation="border" />
-              ) : !selectedMenuItems ? (
-                <div className="d-flex flex-wrap gap-2">
+              ) : (
+                <div className="d-flex flex-column gap-4">
                   {categories.map((cat) => (
-                    <Button
-                      size="lg"
-                      key={cat._id}
-                      className="w-100 h-100"
-                      variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
-                      onClick={() => setItemsToCategory(cat._id)}
-                      style={{
-                        background: "#2A2A3A",
-                        borderColor: "#2A2A3A",
-                        color: "#CCC",
-                        flex: "1 1 100px",
-                      }}
-                    >
-                      {cat.name}
-                    </Button>
+                    <div key={cat._id}>
+                      <b>
+                        <h2 className="text-center" style={{ color: "#CCC" }}>
+                          {cat.name}
+                        </h2>
+                      </b>
+                      <div className="d-flex flex-wrap gap-2">
+                        {groupedMenuItems[cat._id]?.map((item) => (
+                          <div
+                            key={item._id}
+                            onClick={() => viewSpecificItem(item._id)}
+                            style={{
+                              background: "#2A2A3A",
+                              border: "1px solid #444",
+                              color: "#CCC",
+                              flex: "1 1 250px",
+                              padding: "1rem",
+                              borderRadius: "0.5rem",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "start",
+                              gap: "0.5rem",
+                              width: "33%",
+                              minWidth: "100px",
+                              maxWidth: "300px",
+                            }}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{
+                                borderRadius: "0.5rem",
+                                width: "100%",
+                                height: "auto",
+                                aspectRatio: "4 / 3",
+                                objectFit: "cover",
+                              }}
+                            />
+                            <strong>{item.name}</strong>
+                            <small style={{ color: "#AAA" }}>
+                              Ingredients:{" "}
+                              {item.variations[0]?.ingredients &&
+                              item.variations[0].ingredients.length > 0
+                                ? (() => {
+                                    const fullString = item.variations[0].ingredients
+                                      .map((ing) => ing.name)
+                                      .join(", ");
+                                    const maxLength = 50;
+                                    return fullString.length > maxLength
+                                      ? fullString.slice(0, maxLength) + "..."
+                                      : fullString;
+                                  })()
+                                : "No ingredients listed"}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              ) : null}
-              {/* Menu Item display */}
-              {loading ? (
-                <Spinner animation="border" />
-              ) : selectedMenuItems ? (
-                <div className="d-flex flex-wrap gap-2">
-                  {selectedMenuItems.map((cat) => (
-                    <Button
-                      size="lg"
-                      className="w-100 h-100"
-                      key={cat._id}
-                      style={{
-                        background: "#2A2A3A",
-                        borderColor: "#2A2A3A",
-                        color: "#CCC",
-                        flex: "1 1 100px",
-                      }}
-                      variant={choosenCategory === cat._id ? "primary" : "outline-primary"}
-                      onClick={() => viewSpecificItem(cat._id)}
-                    >
-                      {cat.name}
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
+              )}
             </Col>
             {/* </Row> */}
             {/* Cart */}
