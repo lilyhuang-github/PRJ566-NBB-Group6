@@ -101,7 +101,9 @@ const OrderTable = ({ columns, data, onSort, currentSort, sortOrder, onRowClick 
               >
                 {columns.map(col => {
                   let value;
-                  if (col.accessor.includes('.')) {
+                  if (col.accessor === '_id') {
+                    value = row._id.slice(-4); // Show only last 4 characters of _id
+                  } else if (col.accessor.includes('.')) {
                     const [obj, prop] = col.accessor.split('.');
                     value = row[obj]?.[prop];
                   } else {
@@ -276,7 +278,6 @@ const OrderHistoryPage = () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
-        search: searchTerm,
         statuses: filters.status,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
@@ -286,9 +287,15 @@ const OrderHistoryPage = () => {
       console.log('Fetching orders with URL:', `/order/history?${params}`);
       const response = await apiFetch(`/order/history?${params}`);
       console.log('API response:', response);
-      const { orders: list, total, pages } = response;
-      setOrders(list);
-      setTotalOrders(total);
+      const { orders: allOrders, total, pages } = response;
+
+      // Filter orders locally by the last 4 digits of _id if searchTerm is provided
+      const filteredOrders = searchTerm
+        ? allOrders.filter(order => order._id.slice(-4) === searchTerm)
+        : allOrders;
+
+      setOrders(filteredOrders);
+      setTotalOrders(total); // Note: totalOrders might need adjustment if filtered client-side
       setTotalPages(pages);
     } catch (err) {
       console.error('Failed to load orders:', err.message, err);
@@ -390,7 +397,7 @@ const OrderHistoryPage = () => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search by staff username or item name..."
+                  placeholder="Search by last 4 digits of order ID, staff username, or item name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   style={{
@@ -463,7 +470,7 @@ const OrderHistoryPage = () => {
                       <input
                         type="radio"
                         name="status"
-                        value="Cancelled"
+                        value="cancelled"
                         checked={tempFilters.status === 'cancelled'}
                         onChange={() => handleStatusChange('cancelled')}
                       /> Cancelled

@@ -9,19 +9,19 @@ export default function OrderingSwitchMenu() {
   const cards = [
     {
       title: "Create Order",
-      icon: <FiPlusCircle size={80} />, // bigger icon
+      icon: <FiPlusCircle size={80} />,
       color: "#4CAF50",
       path: "ordering/create-order",
     },
     {
       title: "Order History",
-      icon: <FiClock size={80} />, // bigger icon
+      icon: <FiClock size={80} />,
       color: "#2196F3",
       path: "ordering/history",
     },
     {
       title: "Active Orders",
-      icon: <FiList size={80} />, // bigger icon
+      icon: <FiList size={80} />,
       color: "#FF9800",
       path: "ordering/active",
     },
@@ -33,13 +33,13 @@ export default function OrderingSwitchMenu() {
       style={{
         backgroundColor: "#1E1E2F",
         borderRadius: 20,
-        padding: "4rem 3rem",       // increased padding
+        padding: "4rem 3rem",
         border: `2px solid ${color}30`,
         cursor: "pointer",
         transition: "all 0.3s ease",
         position: "relative",
         overflow: "hidden",
-        minHeight: "340px",         // increased minHeight
+        minHeight: "340px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -78,7 +78,7 @@ export default function OrderingSwitchMenu() {
         style={{
           backgroundColor: `${color}20`,
           borderRadius: "50%",
-          padding: "2.5rem",        // bigger padding for bigger icon
+          padding: "2.5rem",
           color: color,
           display: "flex",
           alignItems: "center",
@@ -93,7 +93,7 @@ export default function OrderingSwitchMenu() {
       <h2
         style={{
           margin: 0,
-          fontSize: "2rem",          // bigger font
+          fontSize: "2rem",
           fontWeight: 700,
           color: "#FFF",
         }}
@@ -110,7 +110,7 @@ export default function OrderingSwitchMenu() {
         style={{
           marginBottom: "1.5rem",
           textAlign: "center",
-          paddingTop: "2rem", // pushes heading down from top
+          paddingTop: "2rem", 
         }}
       >
         <h1
@@ -145,7 +145,7 @@ export default function OrderingSwitchMenu() {
         style={{
           padding: "2rem",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", // bigger min width to match bigger cards
+          gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
           gap: "2rem",
           minHeight: "60vh",
           alignItems: "center",
