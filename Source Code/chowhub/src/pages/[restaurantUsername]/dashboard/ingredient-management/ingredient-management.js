@@ -76,7 +76,7 @@ export default function IngredientManagementPage() {
   return (
     <DashboardLayout>
       <ManagerOnly>
-        <h1>Ingredient Management</h1>
+        <h1>🧂 Ingredient Management</h1>
 
         {loading ? (
           <p>Loading ingredients…</p>

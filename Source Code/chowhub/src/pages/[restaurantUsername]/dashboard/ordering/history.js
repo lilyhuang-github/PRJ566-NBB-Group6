@@ -367,7 +367,7 @@ const OrderHistoryPage = () => {
   return (
     <DashboardLayout>
       <div style={{ padding: '1rem', minWidth: '0' }}>
-        <h1 style={{ color: '#FFF', marginBottom: '1.5rem' }}>Order History</h1>
+        <h1 style={{ color: '#FFF', marginBottom: '1.5rem' }}>🧾 Order History</h1>
         {loading ? (
           <p style={{ color: '#EEE' }}>Loading orders…</p>
         ) : (
