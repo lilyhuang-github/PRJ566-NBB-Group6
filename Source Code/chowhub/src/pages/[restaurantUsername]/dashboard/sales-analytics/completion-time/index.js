@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import { apiFetch } from "@/lib/api";
+import AnalyticsBackButton from "@/components/AnalyticsBackButton";
 
 export default function CompletionTimeAnalysis() {
   const router = useRouter();
@@ -81,6 +82,9 @@ export default function CompletionTimeAnalysis() {
     <DashboardLayout>
       <ManagerOnly>
         <div style={{ padding: "2rem", color: "#FFF" }}>
+          <div style={{ marginBottom: "2rem" }}>
+            <AnalyticsBackButton />
+          </div>
           <h1 style={{ marginBottom: "2rem", fontSize: "2rem" }}>
             ⏱️ Order Completion Time Analytics
           </h1>
@@ -354,6 +358,94 @@ export default function CompletionTimeAnalysis() {
                 </div>
               </div>
 
+              {/* Daily Averages Chart */}
+              <div
+                style={{
+                  backgroundColor: "#1E1E2F",
+                  padding: "1.5rem",
+                  borderRadius: "8px",
+                  marginBottom: "2rem",
+                  border: "1px solid #3A3A4A",
+                }}
+              >
+                <h3 style={{ marginBottom: "1rem" }}>📈 Daily Average Completion Times</h3>
+
+                {!completionData.dailyAverages || completionData.dailyAverages.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "2rem", color: "#CCC" }}>
+                    <p>No daily average data available</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: "0.5rem" }}>
+                    {completionData.dailyAverages.map((day, index) => {
+                      const maxTime = Math.max(
+                        ...completionData.dailyAverages.map((d) => d.avgCompletionTime),
+                      );
+                      const percentage = maxTime > 0 ? (day.avgCompletionTime / maxTime) * 100 : 0;
+
+                      return (
+                        <div key={index} style={{ marginBottom: "1rem" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              marginBottom: "0.5rem",
+                            }}
+                          >
+                            <span style={{ fontWeight: 600 }}>
+                              {(() => {
+                                const [year, month, dayNum] = day.date.split("-"); // Changed 'day' to 'dayNum'
+                                const date = new Date(
+                                  parseInt(year),
+                                  parseInt(month) - 1,
+                                  parseInt(dayNum), // Use 'dayNum' here too
+                                );
+                                return date.toLocaleDateString([], {
+                                  weekday: "long",
+                                  month: "short",
+                                  day: "numeric",
+                                });
+                              })()}
+                            </span>
+                            <div style={{ display: "flex", gap: "1rem" }}>
+                              <span style={{ color: "#FF9800", fontSize: "0.9rem" }}>
+                                {formatDuration(day.avgCompletionTime)}
+                              </span>
+                              <span style={{ color: "#4CAF50", fontSize: "0.9rem" }}>
+                                {day.orderCount} orders
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "12px",
+                              backgroundColor: "#3A3A4A",
+                              borderRadius: "6px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${percentage}%`,
+                                height: "100%",
+                                backgroundColor:
+                                  percentage > 80
+                                    ? "#FF4444"
+                                    : percentage > 60
+                                      ? "#FF9800"
+                                      : "#4CAF50",
+                                borderRadius: "6px",
+                                transition: "width 1s ease-in-out",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Individual Order Analysis */}
               <div
                 style={{
@@ -428,86 +520,6 @@ export default function CompletionTimeAnalysis() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Daily Averages Chart */}
-              <div
-                style={{
-                  backgroundColor: "#1E1E2F",
-                  padding: "1.5rem",
-                  borderRadius: "8px",
-                  marginBottom: "2rem",
-                  border: "1px solid #3A3A4A",
-                }}
-              >
-                <h3 style={{ marginBottom: "1rem" }}>📈 Daily Average Completion Times</h3>
-
-                {!completionData.dailyAverages || completionData.dailyAverages.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "2rem", color: "#CCC" }}>
-                    <p>No daily average data available</p>
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gap: "0.5rem" }}>
-                    {completionData.dailyAverages.map((day, index) => {
-                      const maxTime = Math.max(
-                        ...completionData.dailyAverages.map((d) => d.avgCompletionTime),
-                      );
-                      const percentage = maxTime > 0 ? (day.avgCompletionTime / maxTime) * 100 : 0;
-
-                      return (
-                        <div key={index} style={{ marginBottom: "1rem" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              marginBottom: "0.5rem",
-                            }}
-                          >
-                            <span style={{ fontWeight: 600 }}>
-                              {new Date(day.date).toLocaleDateString([], {
-                                weekday: "long",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </span>
-                            <div style={{ display: "flex", gap: "1rem" }}>
-                              <span style={{ color: "#FF9800", fontSize: "0.9rem" }}>
-                                {formatDuration(day.avgCompletionTime)}
-                              </span>
-                              <span style={{ color: "#4CAF50", fontSize: "0.9rem" }}>
-                                {day.orderCount} orders
-                              </span>
-                            </div>
-                          </div>
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "12px",
-                              backgroundColor: "#3A3A4A",
-                              borderRadius: "6px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${percentage}%`,
-                                height: "100%",
-                                backgroundColor:
-                                  percentage > 80
-                                    ? "#FF4444"
-                                    : percentage > 60
-                                      ? "#FF9800"
-                                      : "#4CAF50",
-                                borderRadius: "6px",
-                                transition: "width 1s ease-in-out",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
                 )}
               </div>
