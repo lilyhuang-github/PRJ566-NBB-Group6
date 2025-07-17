@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
 import { apiFetch } from "@/lib/api";
+import AnalyticsBackButton from "@/components/AnalyticsBackButton";
 
 export default function PeakHourAnalysis() {
   const router = useRouter();
@@ -81,6 +82,9 @@ export default function PeakHourAnalysis() {
     <DashboardLayout>
       <ManagerOnly>
         <div style={{ padding: "2rem", color: "#FFF" }}>
+          <div style={{ marginBottom: "2rem" }}>
+            <AnalyticsBackButton />
+          </div>
           <h1 style={{ marginBottom: "2rem", fontSize: "2rem" }}>🕐 Peak Hour Analysis</h1>
 
           {/* Simple Controls */}

@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/api";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import { FiUser, FiDollarSign, FiShoppingCart, FiTrendingUp, FiCalendar } from "react-icons/fi";
 import { toast } from "react-toastify";
+import AnalyticsBackButton from "@/components/AnalyticsBackButton";
 
 export default function SalesAnalyticsPage() {
   const router = useRouter();
@@ -318,6 +319,9 @@ export default function SalesAnalyticsPage() {
     <DashboardLayout>
       <ManagerOnly>
         <div style={{ padding: "1rem" }}>
+          <div style={{ marginBottom: "2rem" }}>
+            <AnalyticsBackButton />
+          </div>
           <h1
             style={{
               color: "#FFF",
