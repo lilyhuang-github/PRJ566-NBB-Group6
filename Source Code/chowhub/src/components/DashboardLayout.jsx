@@ -35,7 +35,7 @@ const NAV_ITEMS = [
   { label: "Suppliers", icon: <FiUsers />, path: "supplier-management", managerOnly: true },
   { label: "Sales & Analytics", icon: <FiBarChart2 />, path: "sales-analytics", managerOnly: true },
   { label: "Users", icon: <FiUserCheck />, path: "user-management", managerOnly: true },
-  {label: "Settings", icon:<FiSettings />, path:"restaurant-settings", managerOnly:true},
+  {label: "Settings", icon:<FiSettings />, path:"restaurant-settings"},
   {label: "Notifications", icon:<FiBell />, path:"notification-history"}
 ];
 
