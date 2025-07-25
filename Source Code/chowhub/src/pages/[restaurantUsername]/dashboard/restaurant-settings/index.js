@@ -7,13 +7,14 @@ import { Form, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ManagerOnly } from "@/components/Protected";
-import { FiHash, FiHome, FiMapPin } from "react-icons/fi";
+import { FiEdit2, FiHash, FiHome, FiMapPin } from "react-icons/fi";
 
 export default function RestaurantSettings() {
   const router = useRouter();
   const user = useAtomValue(userAtom);
+  const isManager = user?.role === "manager";
 
-  const [form, setForm] = useState({ name: "", username: "", location: "" });
+  const [form, setForm] = useState({ name: "", username: "", location: "", taxRatePercent: 13 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false); // 👈 Toggle for edit mode
@@ -30,6 +31,7 @@ export default function RestaurantSettings() {
             name: res.restaurant.name || "",
             username: res.restaurant.username || "",
             location: res.restaurant.location || "",
+            taxRatePercent: res.restaurant.taxRatePercent || 13,
           });
         }
       } catch (err) {
@@ -95,16 +97,30 @@ export default function RestaurantSettings() {
           >
             {!editing ? (
               <>
-                <h5 className="d-flex align-items-center gap-2">
-                  <FiHome /> {form.name}
-                </h5>
-                <p>
-                  <FiHash /> <strong>Username:</strong> {form.username}
-                </p>
-                <p>
-                  <FiMapPin /> <strong>Location:</strong> {form.location || "—"}
-                </p>
-                <Button onClick={() => setEditing(true)}>Edit</Button>
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 className="d-flex align-items-center gap-2">
+                      <FiHome /> {form.name}
+                    </h5>
+                    <p>
+                      <FiHash /> <strong>Username:</strong> {form.username}
+                    </p>
+                    <p>
+                      <FiMapPin /> <strong>Location:</strong> {form.location || "—"}
+                    </p>
+                    <p>
+                      <strong>% Tax Rate:</strong> {form.taxRatePercent ?? "—"}%
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline-light"
+                    size="sm"
+                    onClick={() => setEditing(true)}
+                    title="Edit Restaurant Info"
+                  >
+                    <FiEdit2 />
+                  </Button>
+                </div>
               </>
             ) : (
               <Form onSubmit={handleSubmit}>
@@ -134,6 +150,15 @@ export default function RestaurantSettings() {
                     type="text"
                     name="location"
                     value={form.location}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formTaxRate">
+                  <Form.Label>Tax Rate</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="taxRatePercent"
+                    value={form.taxRatePercent}
                     onChange={handleChange}
                   />
                 </Form.Group>
