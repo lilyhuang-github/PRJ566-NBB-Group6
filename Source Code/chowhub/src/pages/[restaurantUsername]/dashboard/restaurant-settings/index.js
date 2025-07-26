@@ -123,54 +123,56 @@ export default function RestaurantSettings() {
                 </div>
               </>
             ) : (
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="formName">
-                  <Form.Label>Restaurant Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    required
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formUsername">
-                  <Form.Label>Restaurant Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    required
-                    name="username"
-                    value={form.username}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formLocation">
-                  <Form.Label>Location</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="location"
-                    value={form.location}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formTaxRate">
-                  <Form.Label>Tax Rate</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="taxRatePercent"
-                    value={form.taxRatePercent}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-                <div className="d-flex gap-2">
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
-                  <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>
-                    Cancel
-                  </Button>
-                </div>
-              </Form>
+              <div className="d-flex justify-content-between align-items-start">
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3" controlId="formName">
+                    <Form.Label>Restaurant Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      required
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3" controlId="formUsername">
+                    <Form.Label>Restaurant Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      required
+                      name="username"
+                      value={form.username}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3" controlId="formLocation">
+                    <Form.Label>Location</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="location"
+                      value={form.location}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3" controlId="formTaxRate">
+                    <Form.Label>Tax Rate</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="taxRatePercent"
+                      value={form.taxRatePercent}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                  <div className="d-flex gap-2">
+                    <Button type="submit" disabled={saving}>
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Form>
+              </div>
             )}
           </div>
         </div>

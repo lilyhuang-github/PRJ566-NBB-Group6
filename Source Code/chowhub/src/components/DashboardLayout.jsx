@@ -287,7 +287,8 @@ export default function DashboardLayout({ children }) {
         >
           <DashboardHeader />
 
-          {router.pathname.endsWith("/dashboard") && restaurant && (
+{/* Settings dashboard commented out and moved to settings page */}
+          {/* {router.pathname.endsWith("/dashboard") && restaurant && (
             <div
               style={{
                 backgroundColor: "#1E1E2F",
@@ -365,7 +366,7 @@ export default function DashboardLayout({ children }) {
                 Cancel
               </Button>
             </Form>
-          )}
+          )} */}
 
           {router.pathname.endsWith("/dashboard") && isManager && (
             <div
