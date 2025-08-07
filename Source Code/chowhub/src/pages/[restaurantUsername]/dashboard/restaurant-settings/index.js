@@ -75,108 +75,114 @@ export default function RestaurantSettings() {
 
   return (
     <DashboardLayout>
-      <h1>Restaurant Settings</h1>
-      {loading ? (
-        <p>Loading settings...</p>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            margin: "1.5rem 0",
-            gap: "2rem",
-          }}
-        >
+      <ManagerOnly>
+        <h1>Restaurant Settings</h1>
+        {loading ? (
+          <p>Loading settings...</p>
+        ) : (
           <div
             style={{
-              flex: 1.5,
-              backgroundColor: "#1E1E2F",
-              padding: "1rem",
-              borderRadius: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              margin: "1.5rem 0",
+              gap: "2rem",
             }}
           >
-            {!editing ? (
-              <>
+            <div
+              style={{
+                flex: 1.5,
+                backgroundColor: "#1E1E2F",
+                padding: "1rem",
+                borderRadius: 8,
+              }}
+            >
+              {!editing ? (
+                <>
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h5 className="d-flex align-items-center gap-2">
+                        <FiHome /> {form.name}
+                      </h5>
+                      <p>
+                        <FiHash /> <strong>Username:</strong> {form.username}
+                      </p>
+                      <p>
+                        <FiMapPin /> <strong>Location:</strong> {form.location || "—"}
+                      </p>
+                      <p>
+                        <strong>% Tax Rate:</strong> {form.taxRatePercent ?? "—"}%
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      onClick={() => setEditing(true)}
+                      title="Edit Restaurant Info"
+                    >
+                      <FiEdit2 />
+                    </Button>
+                  </div>
+                </>
+              ) : (
                 <div className="d-flex justify-content-between align-items-start">
-                  <div>
-                    <h5 className="d-flex align-items-center gap-2">
-                      <FiHome /> {form.name}
-                    </h5>
-                    <p>
-                      <FiHash /> <strong>Username:</strong> {form.username}
-                    </p>
-                    <p>
-                      <FiMapPin /> <strong>Location:</strong> {form.location || "—"}
-                    </p>
-                    <p>
-                      <strong>% Tax Rate:</strong> {form.taxRatePercent ?? "—"}%
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline-light"
-                    size="sm"
-                    onClick={() => setEditing(true)}
-                    title="Edit Restaurant Info"
-                  >
-                    <FiEdit2 />
-                  </Button>
+                  <Form onSubmit={handleSubmit}>
+                    <Form.Group className="mb-3" controlId="formName">
+                      <Form.Label>Restaurant Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        required
+                        name="name"
+                        value={form.name}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formUsername">
+                      <Form.Label>Restaurant Username</Form.Label>
+                      <Form.Control
+                        type="text"
+                        required
+                        name="username"
+                        value={form.username}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formLocation">
+                      <Form.Label>Location</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="location"
+                        value={form.location}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formTaxRate">
+                      <Form.Label>Tax Rate</Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="taxRatePercent"
+                        value={form.taxRatePercent}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+                    <div className="d-flex gap-2">
+                      <Button type="submit" disabled={saving}>
+                        {saving ? "Saving..." : "Save Changes"}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={() => setEditing(false)}
+                        disabled={saving}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </Form>
                 </div>
-              </>
-            ) : (
-              <div className="d-flex justify-content-between align-items-start">
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="formName">
-                    <Form.Label>Restaurant Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      required
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="formUsername">
-                    <Form.Label>Restaurant Username</Form.Label>
-                    <Form.Control
-                      type="text"
-                      required
-                      name="username"
-                      value={form.username}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="formLocation">
-                    <Form.Label>Location</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="location"
-                      value={form.location}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="formTaxRate">
-                    <Form.Label>Tax Rate</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="taxRatePercent"
-                      value={form.taxRatePercent}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <div className="d-flex gap-2">
-                    <Button type="submit" disabled={saving}>
-                      {saving ? "Saving..." : "Save Changes"}
-                    </Button>
-                    <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </ManagerOnly>
     </DashboardLayout>
   );
 }
