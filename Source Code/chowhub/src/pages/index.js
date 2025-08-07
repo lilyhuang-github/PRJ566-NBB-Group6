@@ -38,7 +38,7 @@ export default function Home() {
         image="/images/analytics/staff-performance.png"
         alt="Staff performance dashboard screenshot"
         reverse={true}
-        color="#4CAF50"  // green
+        color="#2196F3" // green
       />
 
       <FeatureSection
@@ -52,7 +52,21 @@ export default function Home() {
         image="/images/analytics/peak-hours.png"
         alt="Peak hour analysis dashboard screenshot"
         reverse={false}
-        color="#2196F3"  // blue
+        color="#4CAF50"  // blue
+      />
+
+      <FeatureSection
+        title="AI-Powered Business Insights"
+        description="Leverage AI-driven analytics to understand your restaurant’s performance across sales, staff, menu, and inventory — so you can make smarter decisions, faster."
+        bullets={[
+          'Get strategic recommendations tailored to your business needs',
+          'Optimize your menu based on item popularity and profitability',
+          'Adjust staffing and promotions using peak and slow hour insights',
+        ]}
+        image="/images/analytics/ai-insights.png" // add appropriate image in your assets
+        alt="AI business insights dashboard screenshot"
+        reverse={true}
+        color="#9C27B0" // a distinct purple shade to differentiate, or choose another shade if you want
       />
 
       <InventorySection />
