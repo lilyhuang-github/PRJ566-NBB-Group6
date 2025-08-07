@@ -7,7 +7,7 @@ const CTABanner = () => {
     <div className="position-relative" style={{ height: '275px' }}>
       {/* Background Image */}
       <Image
-        src="/images/background.jpg" // adjust path if needed
+        src="/images/background.jpg"
         alt="Team working together"
         fill
         priority

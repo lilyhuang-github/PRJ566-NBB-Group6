@@ -59,7 +59,7 @@ export default function CtaSection() {
               </Row>
 
               <div className="mt-4">
-                <Link href="/register">
+                <Link href="/create-restaurant">
                 <button
                     type="button"
                     className="btn btn-success btn-lg rounded-0 text-capitalize shadow"
